@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head lang="en">
+   		<meta charset="utf-8">
+   		<title>UP2P - LIBP2P MVP</title>
+		<script src="https://unpkg.com/libp2p-ipfs-browser/dist/index.min.js"></script>
+		<script src="https://unpkg.com/peer-id/dist/index.min.js"></script>
+		<script src="https://unpkg.com/peer-info/dist/index.min.js"></script>
+		<script src="https://unpkg.com/idb-pull-blob-store/dist/index.min.js"></script>
+		<script src="https://unpkg.com/multihashing-async/dist/index.min.js"></script>
+		<script src="bundle.js"></script>
+		<script src="request.js"></script>
+		<script src="connectionHandler.js"></script>
+		<script src="databaseManager.js"></script>
+		<script src="queryHandler.js"></script>
+		<script src="up2p.js"></script>
+	</head>
+	<body>
+		<h1 align="center">U-P2P WebRtc MVP </h1>
+		<div id="downloadFile"></div>
+	</body>
+	<script>
+		setTimeout(function(){
+			up2pInstance.dbManager.fileExists('Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D').then(function(exists)console.log('file Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D exists = '+exists));
+			up2pInstance.connectTo('QmYMLihgZGFdYJfzb6dswUhX72ApmHLpUqi42ij9jAEf25')
+			console.log('connected to QmYMLihgZGFdYJfzb6dswUhX72ApmHLpUqi42ij9jAEf25');
+			//setTimeout(function(){
+				//up2pInstance.query({}).then(function(result){console.log(result)});
+			//},5000);
+		},3000);
+		function exists(){
+			up2pInstance.dbManager.fileExists('Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D').then(function(exists)console.log('file Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D exists = '+exists));
+		}
+		function initiateDownload(){
+		up2pInstance.copyFilePublishedOverNetwork('Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D', 'QmYMLihgZGFdYJfzb6dswUhX72ApmHLpUqi42ij9jAEf25').then(function(){
+					up2pInstance.dbManager.fileExists('Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D').then(function(exists)console.log('file Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D exists = '+exists))
+				});}
+		function reset(){
+		up2pInstance.dbManager.removeFile('Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D');
+		}
+		function download(){
+			stream.pull(
+				up2pInstance.dbManager.getFileReader('Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D'),
+				//stream.flatten(), //find better way
+				stream.collect(function(err,arr){ //find better way
+				if(err)console.error(err);
+					var blob = new Blob(arr,{type: "application/octet-stream"});
+					var objectUrl = URL.createObjectURL(blob);
+					saveToDisk(objectUrl,"lala.exe");
+				})
+			)
+		}
+	function saveToDisk(fileUrl, fileName) {
+		var save = document.createElement('a');
+		save.href = fileUrl;
+		save.target = '_blank';
+		save.download = fileName || fileUrl;
+
+		var download = document.createTextNode("Download");
+		save.appendChild(download);
+
+		document.getElementById("downloadFile").appendChild(save);
+	}
+	</script>
+</html>
