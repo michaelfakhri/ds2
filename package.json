@@ -4,7 +4,7 @@
   "description": "content addressable P2P network",
   "main": "src/index.js",
   "directories": {
-	"src": "src",
+    "src": "src",
     "example": "examples",
     "test": "test"
   },
@@ -34,5 +34,17 @@
   "bugs": {
     "url": "https://github.com/michaelfakhri/universal-peer-to-peer/issues"
   },
-  "homepage": "https://github.com/michaelfakhri/universal-peer-to-peer#readme"
+  "homepage": "https://github.com/michaelfakhri/universal-peer-to-peer#readme",
+  "devDependencies": {
+    "aegir": "^9.1.2",
+    "gulp": "^3.9.1"
+  },
+  "dependencies": {
+    "idb-pull-blob-store": "^0.5.1",
+    "libp2p-ipfs-browser": "^0.17.0",
+    "multihashing-async": "^0.3.0",
+    "peer-id": "^0.8.0",
+    "peer-info": "^0.8.1",
+    "pull-stream": "^3.5.0"
+  }
 }
