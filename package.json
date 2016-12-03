@@ -15,18 +15,18 @@
     "url": "git+https://github.com/michaelfakhri/universal-peer-to-peer.git"
   },
   "keywords": [
-    "[\"P2P\"",
-    "\"content",
-    "addressable\"",
-    "\"WebRTC\"",
-    "\"UP2P\"",
-    "\"universal",
+    "P2P",
+    "content",
+    "addressable",
+    "WebRTC",
+    "UP2P",
+    "universal",
     "peer",
     "to",
-    "peer\"",
-    "\"P2Pedia\"",
-    "\"IndexedDb\"",
-    "\"browser\"]"
+    "peer",
+    "P2Pedia",
+    "IndexedDb",
+    "browser]"
   ],
   "author": "Michael Fakhry",
   "license": "ISC",
