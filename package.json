@@ -1,0 +1,37 @@
+{
+  "name": "universal-peer-to-peer",
+  "version": "0.5.0",
+  "description": "content addressable P2P network",
+  "main": "src/index.js",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaelfakhri/universal-peer-to-peer.git"
+  },
+  "keywords": [
+    "[\"P2P\"",
+    "\"content",
+    "addressable\"",
+    "\"WebRTC\"",
+    "\"UP2P\"",
+    "\"universal",
+    "peer",
+    "to",
+    "peer\"",
+    "\"P2Pedia\"",
+    "\"IndexedDb\"",
+    "\"browser\"]"
+  ],
+  "author": "Michael Fakhry",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/michaelfakhri/universal-peer-to-peer/issues"
+  },
+  "homepage": "https://github.com/michaelfakhri/universal-peer-to-peer#readme"
+}
