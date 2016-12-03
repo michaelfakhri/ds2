@@ -4,6 +4,7 @@
   "description": "content addressable P2P network",
   "main": "src/index.js",
   "directories": {
+	"src": "src",
     "example": "examples",
     "test": "test"
   },
