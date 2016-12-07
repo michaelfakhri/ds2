@@ -9,8 +9,7 @@ const stream = require('pull-stream')
 const DatabaseManager = require('./databaseManager')
 const ConnectionHandler = require('./connectionHandler')
 
-module.exports = UP2P
-class UP2P {
+module.exports = class UP2P {
 
   constructor () {
     this.node
@@ -42,7 +41,7 @@ class UP2P {
     var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/8134/ws/ipfs/' + peerInfo.id.toB58String()
     peerInfo.multiaddr.add(ma)
     // console.debug("YOU CAN REACH ME AT ID = '" + peerInfo.id.toB58String() + "'")
-    self.node = new Libp2PIpfsBrowser.Node(peerInfo)
+    self.node = new Libp2PIpfsBrowser(peerInfo)
     self.node.start((err) => { /* if (err)console.error(err) */ })
     self.connectionHandler = new ConnectionHandler(self.node, self.dbManager)
   }

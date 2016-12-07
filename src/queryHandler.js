@@ -6,8 +6,7 @@ const pullDecode = require('pull-utf8-decoder')
 
 const Request = require('./request')
 
-module.exports = RequestHandler
-class RequestHandler {
+module.exports = class RequestHandler {
   constructor (aDbManager, aNode) {
     this.MAXIMUM_QUERY_TIME_PRIMARY = 15
     this.MAXIMUM_QUERY_TIME_SECONDARY = 5
