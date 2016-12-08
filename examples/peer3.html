@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head lang="en">
+   		<meta charset="utf-8">
+   		<title>UP2P MVP</title>
+		<script src="https://rawgit.com/michaelfakhri/universal-peer-to-peer/master/dist/index.min.js"></script>
+		<script src="bundle.js"></script>
+	</head>
+	<body>
+		<h1 align="center">UP2P MVP </h1>
+		<div id="downloadFile"></div>
+	</body>
+	<script>
+		// peer 3 - dials peer 2 and stores files after getting  through file transfer from peer 2. Also sends out query at start and you can ask it to send query or check if file exists at any time.
+		var peer = 'QmRtnNC6STJQoNePqEZLiQerHEqKk3MyhWnP864wxMYLKB' // peer id I am communicating with
+		var fileHash = 'Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D' // file stored at peer 2 that I will get
+		var fileType = "application/octet-stream" // file type from fileAPI
+		var fileName = "blabla.exe"  // could be from FileAPI or anything else that makes sense like blabla.exe
+		up2pInstance = new UniversalPeerToPeer()
+		setTimeout(function(){
+			up2pInstance.dbManager.fileExists(fileHash).then(function(exists){console.log('file '+fileHash+' exists at start = '+exists)});
+			up2pInstance.connectTo(peer)
+			setTimeout(function(){
+				query()
+			},5000);
+		},5000);
+		
+		function checkFileExists(){
+			up2pInstance.dbManager.fileExists(fileHash).then(function(exists){console.log('file '+fileHash+' exists = '+exists)});
+		}
+		function initiateFileCopy(){
+		up2pInstance.copyFilePublishedOverNetwork(fileHash, peer).then(function(){
+					up2pInstance.dbManager.fileExists(fileHash).then(function(exists){console.log('file '+fileHash+' exists after copy = '+exists)})
+				});}
+		function deleteFile(){
+		up2pInstance.dbManager.removeFile(fileHash);
+		}
+		function downloadFile(){
+			stream.pull(
+				up2pInstance.dbManager.getFileReader(fileHash),
+				//stream.flatten(), //find better way
+				stream.collect(function(err,arr){ //find better way
+				if(err)console.error(err);
+					var blob = new Blob(arr,{type: fileType});
+					var objectUrl = URL.createObjectURL(blob);
+					saveToDisk(objectUrl,fileName);
+				})
+			)
+		}
+	function saveToDisk(fileUrl, fileName) {
+		var save = document.createElement('a');
+		save.href = fileUrl;
+		save.target = '_blank';
+		save.download = fileName || fileUrl;
+
+		var download = document.createTextNode("Download");
+		save.appendChild(download);
+
+		document.getElementById("downloadFile").appendChild(save);
+	}
+	function query(){
+		up2pInstance.query({})
+	}
+	</script>
+</html>
