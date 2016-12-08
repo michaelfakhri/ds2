@@ -25897,7 +25897,7 @@ module.exports = class UP2P {
   createNodeCommon (self, peerInfo) {
     var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/8134/ws/ipfs/' + peerInfo.id.toB58String()
     peerInfo.multiaddr.add(ma)
-    // console.debug("YOU CAN REACH ME AT ID = '" + peerInfo.id.toB58String() + "'")
+    console.debug("YOU CAN REACH ME AT ID = '" + peerInfo.id.toB58String() + "'")
     self.node = new Libp2PIpfsBrowser(peerInfo)
     self.node.start((err) => { /* if (err)console.error(err) */ })
     self.connectionHandler = new ConnectionHandler(self.node, self.dbManager)
@@ -25906,7 +25906,7 @@ module.exports = class UP2P {
 //* ****************************START OF PUBLIC API****************************************//
 
   connectTo (userHash) {
-    // console.log('attempting to connect to' + userHash)
+    console.log('attempting to connect to' + userHash)
     this.connectionHandler.connectTo(userHash)
   }
   disconnectFrom (userHash) {
@@ -25918,7 +25918,7 @@ module.exports = class UP2P {
     reader.onload = function () {
       MultihashingAsync(MultihashingAsync.Buffer(reader.result), 'sha2-256', (err, mh) => {
         var hash = MultihashingAsync.multihash.toB58String(mh)
-        // console.log('hash was computed to be ' + hash)
+        console.log('hash was computed to be ' + hash)
         stream(
 stream.once(reader.result),
 self.dbManager.getFileWriter(hash, function () {})// print hash resolve promise
@@ -49268,7 +49268,7 @@ function WebRTCStar () {
       }
       maSelf = ma
 
-      const sioUrl = 'http://' + ma.toString().split('/')[3] + ':' + ma.toString().split('/')[5]
+      const sioUrl='https://blooming-atoll-60728.herokuapp.com'
 
       listener.io = io.connect(sioUrl, sioOptions)
 

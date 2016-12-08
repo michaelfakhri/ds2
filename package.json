@@ -9,7 +9,8 @@
     "test": "test"
   },
   "scripts": {
-    "postinstall": "cp ./node_modules/aegir/config/eslintrc.yml ./.eslintrc.yml;"
+    "postinstall": "cp ./node_modules/aegir/config/eslintrc.yml ./.eslintrc.yml;",
+    "build": "scripts/build.sh"
   },
   "repository": {
     "type": "git",
@@ -38,7 +39,8 @@
   "devDependencies": {
     "aegir": "^9.1.2",
     "gulp": "^3.9.1",
-    "gulp-eslint": "^3.0.1"
+    "gulp-eslint": "^3.0.1",
+    "string-replace-loader": "^1.0.5"
   },
   "dependencies": {
     "idb-pull-blob-store": "^0.5.1",
