@@ -6,11 +6,11 @@ const IdbPullBlobStore = require('idb-pull-blob-store')
 
 module.exports = class DatabaseManager {
   constructor (fileMetadata) {
-// TODO: implement metadata handlng and verification
-    var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
-    indexedDB.deleteDatabase('tempFileStorage')
+  // TODO: implement metadata handlng and verification
+  // var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
+  // indexedDB.deleteDatabase('tempFileStorage')
 
-// this.tempFileStorage = new IdbPullBlobStore("tempFileStorage");
+  // this.tempFileStorage = new IdbPullBlobStore("tempFileStorage");
     this.fileStorage = new IdbPullBlobStore('fileStorage')
     this.config = new IdbPullBlobStore('config')
   }

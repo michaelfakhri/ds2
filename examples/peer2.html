@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head lang="en">
+   		<meta charset="utf-8">
+   		<title>UP2P - LIBP2P MVP</title>
+		<script src="https://rawgit.com/michaelfakhri/universal-peer-to-peer/master/dist/index.min.js"></script>
+	</head>
+	<body>
+		<h1 align="center">U-P2P MVP </h1>
+		<br>
+		<br>
+		FileToStore: <input type="file" id="files" name="files[]" multiple />
+
+	</body>
+	<script>
+		// peer 2 - dials peer 1 and stores files uploaded through the file input. Also checks if previously uploaded file is still there upon reboot.  
+		var peer = 'QmYQXUVBsnK8wQ9g35hBcpDiTcaVCm5S2S6aivUPCX3zfr'
+		var fileToTest = 'Qmbnshqqim9yS9Cq8Cc4HzZSbmXe2dfMivNnAi7FQ2ov6D'
+		up2pInstance = new UniversalPeerToPeer()
+		setTimeout(function(){
+			up2pInstance.connectTo(peer)
+			up2pInstance.dbManager.fileExists(fileToTest).then(function(exists){console.log('file ' + fileToTest + ' exists at start= '+exists)})
+		},1000);
+		
+		document.getElementById('files').addEventListener('change', fileTester, false);
+
+		function fileTester(event){
+			up2pInstance.publishFile(event.target.files[0]);
+		}
+		function exists(){
+			up2pInstance.dbManager.fileExists(fileToTest).then(function(exists){console.log('file '+fileToTest+' exists = '+exists)});
+		}
+	</script>
+</html>

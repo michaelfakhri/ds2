@@ -5,6 +5,7 @@ module.exports = class ConnectionHandler {
     this.node = node
     this.requestHandler = new RequestHandler(dbManager, node)
     node.handle('/UP2P/queryTransfer', (protocol, conn) => {
+      console.log("incoming dial")
 // conn.getObservedAddrs(function(err,data){var addr = data[0].toString().split("/");console.log("handling"+addr[addr.length - 1])});
 // console.log(conn);
 // a = conn
@@ -15,8 +16,8 @@ module.exports = class ConnectionHandler {
     })
   }
   connectTo (userHash) {
-    console.log('here n')
-    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/8134/ws/ipfs/' + userHash
+    // console.log('here n')
+    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + userHash
     this.node.dialByMultiaddr(ma, '/UP2P/queryTransfer', (err, conn) => {
 // conn.getObservedAddrs(function(err,data){var addr = data[0].toString().split("/");console.log("connectingTo"+addr[addr.length - 1])});
 // console.log(conn);
@@ -39,7 +40,7 @@ module.exports = class ConnectionHandler {
   }
 
   disconnectFrom (userHash) {
-    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/8134/ws/ipfs/' + userHash
+    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + userHash
     this.node.hangUpByMultiaddr(ma, function (err) {
       if (err)console.error(err)
     })
