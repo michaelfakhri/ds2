@@ -2,7 +2,7 @@
 
 const stream = require('pull-stream')
 const pullDecode = require('pull-utf8-decoder')
-const IdbPullBlobStore = require('idb-pull-blob-store')
+const PullBlobStore = require('idb-pull-blob-store')
 
 module.exports = class DatabaseManager {
   constructor (fileMetadata) {
@@ -11,8 +11,8 @@ module.exports = class DatabaseManager {
   // indexedDB.deleteDatabase('tempFileStorage')
 
   // this.tempFileStorage = new IdbPullBlobStore("tempFileStorage");
-    this.fileStorage = new IdbPullBlobStore('fileStorage')
-    this.config = new IdbPullBlobStore('config')
+    this.fileStorage = new PullBlobStore('fileStorage')
+    this.config = new PullBlobStore('config')
   }
 
   configExists () {
@@ -41,7 +41,7 @@ function (err) { if (err)reject(err) })
 // TODO: verify JSON structure
     stream(
 stream.once(JSON.stringify(jsonConfig)),
-this.config.write('config', function (err) { if (err)console.log(err) })
+this.config.write('config', function (err) { if (err) throw err })
 )
   }
   fileExists (fileHash) {
@@ -54,14 +54,17 @@ this.config.write('config', function (err) { if (err)console.log(err) })
     })
   }
   getFileWriter (fileHash, cb) {
-    return this.fileStorage.write(fileHash, function (err) { if (err)console.error(err); cb() })
+    return this.fileStorage.write(fileHash, function (err) { if (err) throw err; cb() })
   }
   getFileReader (fileHash) {
     return this.fileStorage.read(fileHash)
   }
   removeFile (fileHash) {
-    this.fileStorage.remove(fileHash, function (err) {
-      if (err)console.error(err)
+    return new Promise((resolve, reject) => {
+      this.fileStorage.remove(fileHash, function (err) {
+        if (err) return reject(err)
+        resolve()
+      })
     })
   }
 }

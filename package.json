@@ -3,6 +3,10 @@
   "version": "0.5.0",
   "description": "content addressable P2P network",
   "main": "src/index.js",
+  "browser": {
+    "fs": false,
+    "crypto": false
+  },
   "directories": {
     "src": "src",
     "example": "examples",
@@ -47,6 +51,7 @@
     "string-replace-loader": "^1.0.5"
   },
   "dependencies": {
+    "detect-node": "^2.0.3",
     "idb-pull-blob-store": "^0.5.1",
     "libp2p-ipfs-browser": "^0.17.1",
     "lodash": "^4.17.2",
