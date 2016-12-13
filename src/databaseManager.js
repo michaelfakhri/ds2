@@ -2,16 +2,13 @@
 
 const stream = require('pull-stream')
 const pullDecode = require('pull-utf8-decoder')
-const PullBlobStore = require('idb-pull-blob-store')
+const isNode = require('detect-node')
+const PullBlobStore = (isNode) ? require('fs-pull-blob-store') : require('idb-pull-blob-store')
 
 module.exports = class DatabaseManager {
   constructor (fileMetadata) {
-  // TODO: implement metadata handlng and verification
-  // var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
-  // indexedDB.deleteDatabase('tempFileStorage')
-
-  // this.tempFileStorage = new IdbPullBlobStore("tempFileStorage");
-    this.fileStorage = new PullBlobStore('fileStorage')
+    this.metadata = fileMetadata
+    this.files = new PullBlobStore('files')
     this.config = new PullBlobStore('config')
   }
 
@@ -19,7 +16,7 @@ module.exports = class DatabaseManager {
     let config = this.config
     return new Promise(function (resolve, reject) {
       config.exists('config', function (err, exists) {
-        if (err)reject(err)
+        if (err) return reject(err)
         resolve(exists)
       })
     })
@@ -29,39 +26,48 @@ module.exports = class DatabaseManager {
     let config = this.config
     return new Promise(function (resolve, reject) {
       stream(
-config.read('config'),
-pullDecode(),
-stream.drain(function (data) { resolve(JSON.parse(data)) },
-function (err) { if (err)reject(err) })
-)
+        config.read('config'),
+        pullDecode(),
+        stream.drain(function (data) { resolve(JSON.parse(data)) },
+          function (err) {
+            if (err) return reject(err)
+          })
+      )
     })
   }
 
   storeConfig (jsonConfig) {
-// TODO: verify JSON structure
-    stream(
-stream.once(JSON.stringify(jsonConfig)),
-this.config.write('config', function (err) { if (err) throw err })
-)
+    return new Promise((resolve, reject) => {
+      stream(
+        stream.once(new Buffer(JSON.stringify(jsonConfig))),
+        this.config.write('config', function (err) {
+          if (err) return reject(err)
+          resolve()
+        })
+      )
+    })
   }
   fileExists (fileHash) {
-    let storage = this.fileStorage
+    let storage = this.files
     return new Promise(function (resolve, reject) {
       storage.exists(fileHash, function (err, exists) {
-        if (err)reject(err)
+        if (err) return reject(err)
         resolve(exists)
       })
     })
   }
   getFileWriter (fileHash, cb) {
-    return this.fileStorage.write(fileHash, function (err) { if (err) throw err; cb() })
+    return this.files.write(fileHash, function (err) {
+      if (err) return cb(err)
+      cb()
+    })
   }
   getFileReader (fileHash) {
-    return this.fileStorage.read(fileHash)
+    return this.files.read(fileHash)
   }
   removeFile (fileHash) {
     return new Promise((resolve, reject) => {
-      this.fileStorage.remove(fileHash, function (err) {
+      this.files.remove(fileHash, function (err) {
         if (err) return reject(err)
         resolve()
       })

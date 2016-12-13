@@ -11,7 +11,7 @@ module.exports = class RequestHandler {
   constructor (aDbManager, aNode) {
     this.MAXIMUM_QUERY_TIME_PRIMARY = 15
     this.MAXIMUM_QUERY_TIME_SECONDARY = 5
-    this.MAXIMUM_FILE_REQUEST_TIME =
+    this.MAXIMUM_FILE_REQUEST_TIME = 20
     this.MAXIMUM_QUERY_TIME_RECENT = 5
 
     this.dbManager = aDbManager
@@ -53,13 +53,11 @@ module.exports = class RequestHandler {
   requestProcessor (nrOfExpectedResponses, request) {
     let self = this
     var requestId = request.id.toString()
-    self.recentQueries.push(requestId)
-    setTimeout(() => self.recentQueries.shift(), self.MAXIMUM_QUERY_TIME_RECENT * 1000)
     request.response = true
     if (request.queryRequest) {
       var response = { id: self.myId }// TODO: ADD real response
       new Promise(function (resolve, reject) {
-        self.activeQueries[requestId] = {
+        var activeQuery = {
           originalRequest: request,
           expectedResponses: (nrOfExpectedResponses + 1), // +1 is my node
           receivedResponses: 0,
@@ -67,11 +65,19 @@ module.exports = class RequestHandler {
           reject: reject,
           responses: []
         }
-        self.activeQueries[requestId].responses.push(response)
-        self.activeQueries[requestId].receivedResponses++
-        var activeQuery = self.activeQueries[requestId]
+        if (self.recentQueries.includes(request.id.toString())) {
+          let result = activeQuery.originalRequest
+          result.queryRequest.duplicate = true
+          return resolve(result)
+        } else {
+          self.activeQueries[requestId] = activeQuery
+        }
+        self.recentQueries.push(requestId)
+        setTimeout(() => self.recentQueries.shift(), self.MAXIMUM_QUERY_TIME_RECENT * 1000)
+        activeQuery.responses.push(response)
+        activeQuery.receivedResponses++
         if (activeQuery.expectedResponses === activeQuery.receivedResponses) {
-          var result = activeQuery.originalRequest
+          let result = activeQuery.originalRequest
           result.queryRequest.response = activeQuery.responses
           resolve(result)
         } else {
@@ -156,13 +162,11 @@ module.exports = class RequestHandler {
     var self = this
     var parsedRequest = JSON.parse(request)
     if (!parsedRequest.response) {
-      //TODO add better handling to recent queries
-      if (self.recentQueries.includes(parsedRequest.id.toString())) return
       // new query handling
       parsedRequest.timeToLive--
       var expectedNumberOfResponses = 0
-      if (parsedRequest.timeToLive > 0) {
-        parsedRequest.route.push(self.myId)
+      parsedRequest.route.push(self.myId)
+      if (parsedRequest.timeToLive > 0 && !self.recentQueries.includes(parsedRequest.id.toString())) {
         expectedNumberOfResponses = this.sendRequestToAll(parsedRequest)
       }
       self.requestProcessor(expectedNumberOfResponses, parsedRequest)
@@ -171,7 +175,9 @@ module.exports = class RequestHandler {
         // response propagation handling
         var activeQuery = this.activeQueries[parsedRequest.id.toString()]
         if (activeQuery) {
-          parsedRequest.queryRequest.response.forEach((elementInArray) => activeQuery.responses.push(elementInArray))
+          if (!parsedRequest.queryRequest.duplicate) {
+            parsedRequest.queryRequest.response.forEach((elementInArray) => activeQuery.responses.push(elementInArray))
+          }
           activeQuery.receivedResponses++
           if (activeQuery.receivedResponses === activeQuery.expectedResponses) {
             var result = activeQuery.originalRequest

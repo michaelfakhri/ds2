@@ -5,7 +5,9 @@
   "main": "src/index.js",
   "browser": {
     "fs": false,
-    "crypto": false
+    "crypto": false,
+    "wrtc": false,
+    "fs-pull-blob-store": false
   },
   "directories": {
     "src": "src",
@@ -44,14 +46,15 @@
     "aegir": "^9.2.1",
     "chai": "^3.5.0",
     "gulp": "^3.9.1",
-    "gulp-eslint": "^3.0.1",
     "libp2p-webrtc-star": "^0.7.0",
     "mocha": "^3.2.0",
     "multiaddr": "^2.1.1",
+    "rimraf": "^2.5.4",
     "string-replace-loader": "^1.0.5"
   },
   "dependencies": {
     "detect-node": "^2.0.3",
+    "fs-pull-blob-store": "^0.4.1",
     "idb-pull-blob-store": "^0.5.1",
     "libp2p-ipfs-browser": "^0.17.1",
     "lodash": "^4.17.2",

@@ -15,9 +15,16 @@ const ConnectionHandler = require('./connectionHandler')
 
 module.exports = class UniversalPeerToPeer {
 
-  constructor (aPeerId) {
+  constructor (aPeerId, aFileMetadataHandler) {
+    if (!aPeerId && !aFileMetadataHandler) {
+      // throw new Error('Must specify at least the file metadataHandler')
+    }
+    if (!aFileMetadataHandler) {
+      // aFileMetadataHandler = aPeerId
+      // aPeerId = undefined
+    }
     let self = this
-    this.dbManager = new DatabaseManager()
+    this.dbManager = new DatabaseManager(aFileMetadataHandler)
     return new Promise((resolve, reject) => {
       if (aPeerId) {
         resolve(aPeerId)
@@ -36,7 +43,7 @@ module.exports = class UniversalPeerToPeer {
             PeerId.create((err, peerId) => {
               if (err) return reject(err)
               self.dbManager.storeConfig(peerId.toJSON())
-              resolve(peerId)
+              .then(() => resolve(peerId))
             })
           }
         })

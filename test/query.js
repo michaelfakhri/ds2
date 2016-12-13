@@ -1,13 +1,14 @@
 /* eslint-env mocha */
 'use strict'
-
+const Logger = require('logplease')
 const assert = require('chai').assert
 const PeerId = require('peer-id')
 const UP2P = require('../src/index')
+Logger.setLogLevel(Logger.LogLevels.ERROR)
 
 let peers = []
 
-describe('Query', () => {
+describe('Query propagation across nodes', () => {
   let nrOfNodes = 3
   beforeEach((done) => {
     var count = 0
@@ -51,18 +52,19 @@ describe('Query', () => {
       .then(() => peers[2].peer.disconnectFrom(peers[1].id))
       .then(done)
   })
-  it('query between three nodes with error', (done) => {
+  it('query between three nodes with overlap', (done) => {
     peers[0].peer.connectTo(peers[1].id)
       .then(() => peers[0].peer.connectTo(peers[2].id))
       .then(() => peers[1].peer.connectTo(peers[2].id))
       .then(() => peers[0].peer.query({}))
-      .then((result) => console.log(result))//assert.deepEqual(parseQueryResult(result), [peers[1].id, peers[2].id]))
+      .then((result) => assert.sameDeepMembers(parseQueryResult(result), [peers[1].id, peers[2].id]))
       .then(() => peers[0].peer.disconnectFrom(peers[1].id))
       .then(() => peers[0].peer.disconnectFrom(peers[2].id))
       .then(() => peers[1].peer.disconnectFrom(peers[2].id))
       .then(done)
   })
-  function parseQueryResult(responses) {
+
+  function parseQueryResult (responses) {
     return responses.map((response) => response.id)
   }
 })

@@ -1,21 +1,15 @@
 'use strict'
 const gulp = require('gulp')
-const eslint = require('gulp-eslint')
 const signalling = require('libp2p-webrtc-star/src/signalling')
+const del = require('rimraf')
 
 let server
 
 require('aegir/gulp')(gulp)
 
-// gulp lint from gulp fixture in aegir
-
-gulp.task('lint-n-fix-src', () => {
-  return gulp.src('src/*.js')
-    .pipe(eslint({fix: true}))
-    .pipe(eslint.format())
-    .pipe(gulp.dest('src'))
-    .pipe(eslint.failAfterError())
-})
+// gulp lint from gulp tasks in aegir
+// gulp test from gulp tasks in aegir
+// gulp coverage from gulp tasks in aegir
 
 gulp.task('test:browser:before', (done) => {
   serverStart(done)
@@ -27,6 +21,8 @@ gulp.task('test:node:before', (done) => {
   serverStart(done)
 })
 gulp.task('test:node:after', (done) => {
+  del.sync('config')
+  del.sync('files')
   server.stop(done)
 })
 function serverStart (done) {
@@ -41,5 +37,3 @@ function serverStart (done) {
     done()
   })
 }
-
-// gulp coverage from gulp fixture in aegir
