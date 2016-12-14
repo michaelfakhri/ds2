@@ -15,8 +15,14 @@
     "test": "test"
   },
   "scripts": {
-    "postinstall": "cp ./node_modules/aegir/config/eslintrc.yml ./.eslintrc.yml;",
-    "build": "scripts/build.sh"
+    "lint": "aegir-lint",
+    "release": "aegir-release",
+    "build": "aegir-build",
+    "test": "aegir-test",
+    "test:node": "aegir-test node",
+    "test:browser": "aegir-test browser",
+    "coverage": "aegir-coverage",
+    "coverage-publish": "aegir-coverage publish"
   },
   "repository": {
     "type": "git",

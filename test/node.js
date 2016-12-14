@@ -3,3 +3,4 @@
 
 require('./query')
 require('./config')
+require('./file')

@@ -16,6 +16,8 @@ const ConnectionHandler = require('./connectionHandler')
 module.exports = class UniversalPeerToPeer {
 
   constructor (aPeerId, aFileMetadataHandler) {
+    this.db = new DatabaseManager(aFileMetadataHandler)
+
     if (!aPeerId && !aFileMetadataHandler) {
       // throw new Error('Must specify at least the file metadataHandler')
     }
@@ -24,15 +26,14 @@ module.exports = class UniversalPeerToPeer {
       // aPeerId = undefined
     }
     let self = this
-    this.dbManager = new DatabaseManager(aFileMetadataHandler)
     return new Promise((resolve, reject) => {
       if (aPeerId) {
         resolve(aPeerId)
       } else {
-        self.dbManager.configExists()
+        self.db.configExists()
         .then(function (exists) {
           if (exists) {
-            self.dbManager.getConfig()
+            self.db.getConfig()
             .then((peerInfo) => {
               PeerId.createFromJSON(peerInfo, (err, peerId) => {
                 if (err) return reject(err)
@@ -42,7 +43,7 @@ module.exports = class UniversalPeerToPeer {
           } else {
             PeerId.create((err, peerId) => {
               if (err) return reject(err)
-              self.dbManager.storeConfig(peerId.toJSON())
+              self.db.storeConfig(peerId.toJSON())
               .then(() => resolve(peerId))
             })
           }
@@ -51,12 +52,13 @@ module.exports = class UniversalPeerToPeer {
     })
     .then((peerId) => {
       return new Promise((resolve, reject) => {
+        this.db.setupFileStorage(peerId.toB58String())
         var peerInfo = new PeerInfo(peerId)
         self.node = new Libp2PIpfsBrowser(peerInfo)
-        var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + peerInfo.id.toB58String()
+        var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + peerId.toB58String()
         peerInfo.multiaddr.add(ma)
-        logger.debug('YOU CAN REACH ME AT ID = ' + peerInfo.id.toB58String())
-        self.connectionHandler = new ConnectionHandler(self.node, self.dbManager)
+        logger.debug('YOU CAN REACH ME AT ID = ' + peerId.toB58String())
+        self.connectionHandler = new ConnectionHandler(self.node, self.db)
         resolve(self)
       })
     })
@@ -82,57 +84,46 @@ module.exports = class UniversalPeerToPeer {
     })
   }
 
-  connectTo (userHash) {
-    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + userHash
+  connect (aUserHashStr) {
+    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + aUserHashStr
+    logger.debug('Attempting to connect to ' + aUserHashStr)
+    return this.connectionHandler.connect(ma)
+  }
+  disconnect (aUserHashStr) {
+    return this.connectionHandler.disconnect(aUserHashStr)
+  }
 
-    logger.debug('Attempting to connect to' + userHash)
-    return this.connectionHandler.connectTo(ma)
-  }
-  disconnectFrom (userHash) {
-    return this.connectionHandler.disconnectFrom(userHash)
-  }
-  publishFile (file, metadata) {
+  publish (aData, aMetadata) {
     var self = this
     return new Promise((resolve, reject) => {
-      var reader = new FileReader() // eslint-disable-line no-undef
-      reader.onload = function () {
-        MultihashingAsync(MultihashingAsync.Buffer(reader.result), 'sha2-256', (err, mh) => {
-          if (err) reject(err)
-          var hash = MultihashingAsync.multihash.toB58String(mh)
-          resolve(hash)
-          stream(
-            stream.once(reader.result),
-            self.dbManager.getFileWriter(hash, function () {
-            })// print hash resolve promise
-          )
-        })
-      }
-      reader.readAsArrayBuffer(file)
+      MultihashingAsync(Buffer(aData), 'sha2-256', (err, mh) => {
+        if (err) reject(err)
+        var hash = MultihashingAsync.multihash.toB58String(mh)
+        stream(
+          stream.once(aData),
+          self.db.getFileWriter(hash, function () {
+            if (err) return reject(err)
+            resolve(hash)
+          })
+        )
+      })
     })
   }
-  deletePublishedFile (fileHash) {
-    return this.dbManager.removeFile(fileHash)
+
+  view (aDataHashStr) {
+    return this.db.getFile(aDataHashStr)
   }
-  copyFilePublishedOverNetwork (fileHash, userHash) {
-    return this.connectionHandler.sendFileRequest(fileHash, userHash)
+
+  delete (aDataHashStr) {
+    return this.db.deleteFile(aDataHashStr)
   }
-  query (queryJson) {
-    return this.connectionHandler.sendQuery(queryJson)
+
+  copy (aDataHashStr, aUserHashStr) {
+    return this.connectionHandler.sendFileRequest(aDataHashStr, aUserHashStr)
+  }
+
+  query (aQuery) {
+    return this.connectionHandler.sendQuery(aQuery)
   }
 }
-
-// up2pInstance = new UP2P()
-// up2pInstance.connectTo('QmYMLihgZGFdYJfzb6dswUhX72ApmHLpUqi42ij9jAEf25')
-// up2pInstance.query({}).then(function(result){console.log(result)})
-// up2pInstance.connectTo('QmTjnjMUXtPddDKayE4uDr5bMqopSPdZRdyBqMXWQcs6Vq')
-
-// connection interface
-// connectionHandler.js
-// ConnectTo(user)
-// DisconnectFrom(user)
-// reqFile(fileHash)
-// reqFile(fileHash,user)
-// reqQuery(query)
-
-// File storage interface
-
+module.exports.Buffer = Buffer

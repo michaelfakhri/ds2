@@ -12,7 +12,7 @@ module.exports = class ConnectionHandler {
       self.requestHandler.initFtpStream(conn)
     })
   }
-  connectTo (ma) {
+  connect (ma) {
     let self = this
     return new Promise((resolve, reject) => {
       self.node.dialByMultiaddr(ma, '/UP2P/queryTransfer', (err, conn) => {
@@ -27,10 +27,10 @@ module.exports = class ConnectionHandler {
     })
   }
 
-  disconnectFrom (userHash) {
+  disconnect (userHash) {
     var self = this
     var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + userHash
-    // TODO: REMOVE THE FOLLOWING TWO LINES WHEN HANGUP BUG IS INVESTIGATED/FIXED
+    // TODO: REMOVE THE FOLLOWING LINE WHEN HANGUP BUG IS INVESTIGATED/FIXED
     self.requestHandler.disconnectConnection(userHash)
     return new Promise((resolve, reject) => {
       self.node.hangUpByMultiaddr(ma, function (err) {
@@ -40,8 +40,8 @@ module.exports = class ConnectionHandler {
     })
     //
   }
-  sendQuery (query) {
-    return this.requestHandler.buildAndSendQuery(query)
+  sendQuery (aQuery) {
+    return this.requestHandler.buildAndSendQuery(aQuery)
   }
   sendFileRequest (file, user) {
     return this.requestHandler.buildAndSendFileRequest(file, user)

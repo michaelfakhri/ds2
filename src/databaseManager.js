@@ -8,8 +8,10 @@ const PullBlobStore = (isNode) ? require('fs-pull-blob-store') : require('idb-pu
 module.exports = class DatabaseManager {
   constructor (fileMetadata) {
     this.metadata = fileMetadata
-    this.files = new PullBlobStore('files')
     this.config = new PullBlobStore('config')
+  }
+  setupFileStorage (aUserHash) {
+    this.files = new PullBlobStore('files-' + aUserHash)
   }
 
   configExists () {
@@ -47,6 +49,7 @@ module.exports = class DatabaseManager {
       )
     })
   }
+
   fileExists (fileHash) {
     let storage = this.files
     return new Promise(function (resolve, reject) {
@@ -54,6 +57,21 @@ module.exports = class DatabaseManager {
         if (err) return reject(err)
         resolve(exists)
       })
+    })
+  }
+  storeFile () {
+
+  }
+  getFile (fileHash) {
+    return new Promise((resolve, reject) => {
+      stream(
+        this.getFileReader(fileHash),
+        stream.flatten(),
+        stream.collect(function (err, arr) {
+          if (err) return reject(err)
+          resolve(arr)
+        })
+      )
     })
   }
   getFileWriter (fileHash, cb) {
@@ -65,7 +83,7 @@ module.exports = class DatabaseManager {
   getFileReader (fileHash) {
     return this.files.read(fileHash)
   }
-  removeFile (fileHash) {
+  deleteFile (fileHash) {
     return new Promise((resolve, reject) => {
       this.files.remove(fileHash, function (err) {
         if (err) return reject(err)

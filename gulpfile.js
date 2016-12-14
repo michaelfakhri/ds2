@@ -22,7 +22,7 @@ gulp.task('test:node:before', (done) => {
 })
 gulp.task('test:node:after', (done) => {
   del.sync('config')
-  del.sync('files')
+  del.sync('files*')
   server.stop(done)
 })
 function serverStart (done) {
