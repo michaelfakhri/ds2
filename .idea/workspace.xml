@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6d4f0d7b-372c-4116-ab43-ad0dbebb1300" name="Default" comment="" />
+    <list default="true" id="6d4f0d7b-372c-4116-ab43-ad0dbebb1300" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/index.js" afterPath="$PROJECT_DIR$/dist/index.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/index.js.map" afterPath="$PROJECT_DIR$/dist/index.js.map" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/index.min.js" afterPath="$PROJECT_DIR$/dist/index.min.js" />
+    </list>
     <ignored path="universal-peer-to-peer.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -402,12 +407,12 @@
       <workItem from="1481603824063" duration="225000" />
       <workItem from="1481604077831" duration="17258000" />
       <workItem from="1481684292193" duration="127000" />
-      <workItem from="1481684447109" duration="20117000" />
+      <workItem from="1481684447109" duration="20338000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="119216000" />
+    <option name="totallyTimeSpent" value="119437000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1366" height="744" extended-state="6" />
