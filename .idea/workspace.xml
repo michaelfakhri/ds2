@@ -1,30 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6d4f0d7b-372c-4116-ab43-ad0dbebb1300" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.travis.yml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/custom.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/requestTracker.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/file.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/instance.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/index.js" afterPath="$PROJECT_DIR$/dist/index.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/index.js.map" afterPath="$PROJECT_DIR$/dist/index.js.map" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/index.min.js" afterPath="$PROJECT_DIR$/dist/index.min.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gulpfile.js" afterPath="$PROJECT_DIR$/gulpfile.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/package.json" afterPath="$PROJECT_DIR$/package.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/connectionHandler.js" afterPath="$PROJECT_DIR$/src/connectionHandler.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/databaseManager.js" afterPath="$PROJECT_DIR$/src/databaseManager.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/index.js" afterPath="$PROJECT_DIR$/src/index.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/queryHandler.js" afterPath="$PROJECT_DIR$/src/queryHandler.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/request.js" afterPath="$PROJECT_DIR$/src/request.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/browser.js" afterPath="$PROJECT_DIR$/test/browser.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/config.js" afterPath="$PROJECT_DIR$/test/config.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/node.js" afterPath="$PROJECT_DIR$/test/node.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/query.js" afterPath="$PROJECT_DIR$/test/query.js" />
-    </list>
+    <list default="true" id="6d4f0d7b-372c-4116-ab43-ad0dbebb1300" name="Default" comment="" />
     <ignored path="universal-peer-to-peer.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -425,12 +402,12 @@
       <workItem from="1481603824063" duration="225000" />
       <workItem from="1481604077831" duration="17258000" />
       <workItem from="1481684292193" duration="127000" />
-      <workItem from="1481684447109" duration="20002000" />
+      <workItem from="1481684447109" duration="20117000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="119101000" />
+    <option name="totallyTimeSpent" value="119216000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="24" width="1366" height="744" extended-state="6" />
