@@ -61,7 +61,7 @@
     "idb-pull-blob-store": "^0.5.1",
     "libp2p-ipfs-browser": "^0.17.2",
     "lodash": "^4.17.2",
-    "logplease": "^1.2.11",
+    "logplease": "^1.2.12",
     "multihashing-async": "^0.3.0",
     "peer-id": "^0.8.0",
     "peer-info": "^0.8.1",
