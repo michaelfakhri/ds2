@@ -63,7 +63,7 @@
     "lodash": "^4.17.2",
     "logplease": "^1.2.11",
     "multihashing-async": "^0.3.0",
-    "peer-id": "^0.8.0",
+    "peer-id": "^0.8.1",
     "peer-info": "^0.8.1",
     "pull-pushable": "^2.0.1",
     "pull-stream": "^3.5.0",
