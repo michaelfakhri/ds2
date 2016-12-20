@@ -63,7 +63,7 @@ module.exports = class RequestHandler {
           reject: reject,
           responses: []
         }
-        if (self.recentQueries.includes(request.getId().toString())) {
+        if (self.recentQueries.indexOf(request.getId().toString()) > -1) {
           let result = activeQuery.originalRequest
           result.setDuplicate()
           return resolve(result)
@@ -161,7 +161,7 @@ module.exports = class RequestHandler {
       // new query handling
       var expectedNumberOfResponses = 0
       parsedRequest.addToRoute(self.myId)
-      if (parsedRequest.decrementTimeToLive() > 0 && !self.recentQueries.includes(parsedRequest.getId().toString())) {
+      if (parsedRequest.decrementTimeToLive() > 0 && !self.recentQueries.indexOf(parsedRequest.getId().toString()) > -1) {
         expectedNumberOfResponses = this.sendRequestToAll(parsedRequest)
       }
       self.requestProcessor(expectedNumberOfResponses, parsedRequest)
