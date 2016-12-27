@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{chai-DefinitelyTyped, mocha-DefinitelyTyped, node-DefinitelyTyped, npm-DefinitelyTyped, requirejs-DefinitelyTyped}" />
-    <includedPredefinedLibrary name="ECMAScript 6" />
-    <excludedPredefinedLibrary name="HTML5 / EcmaScript 5" />
-    <excludedPredefinedLibrary name="universal-peer-to-peer/node_modules" />
-  </component>
-</project>

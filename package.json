@@ -56,6 +56,7 @@
     "string-replace-loader": "^1.0.5"
   },
   "dependencies": {
+    "deferred": "^0.7.5",
     "detect-node": "^2.0.3",
     "fs-pull-blob-store": "^0.4.1",
     "idb-pull-blob-store": "^0.5.1",
