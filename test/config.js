@@ -18,7 +18,7 @@ describe('Config storage in db', () => {
       .then((peer) => { peer2 = peer })
       .then(() => peer2.db.getConfig())
       .then((config) => { config2 = config })
-      .then(() => assert.deepEqual(config1, config2)) // they equal each other since they share the same dB
+      .then(() => assert.deepEqual(config1, config2)) // they equal each other since they share the same storage medium
       .then(done)
   })
 })

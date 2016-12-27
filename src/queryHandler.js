@@ -5,6 +5,7 @@ const pullPushable = require('pull-pushable')
 const pullDecode = require('pull-utf8-decoder')
 const Request = require('./request')
 
+const deferred = require('deferred')
 module.exports = class RequestHandler {
   constructor (aDbManager, aNode) {
     this.MAXIMUM_QUERY_TIME_PRIMARY = 15
@@ -27,76 +28,71 @@ module.exports = class RequestHandler {
 
     var queryToSend = Request.create(self.myId, query)
     var requestId = queryToSend.getId()
-
-    return new Promise(function (resolve, reject) {
-      var nrOfExpectedResponses = self.sendRequestToAll(queryToSend)
-      self.activeQueries[requestId.toString()] = {
-        originalRequest: queryToSend,
-        expectedResponses: nrOfExpectedResponses,
-        receivedResponses: 0,
-        resolve: resolve,
-        reject: reject,
-        responses: []
+    var def = deferred()
+    var nrOfExpectedResponses = self.sendRequestToAll(queryToSend)
+    self.activeQueries[requestId.toString()] = {
+      originalRequest: queryToSend,
+      expectedResponses: nrOfExpectedResponses,
+      receivedResponses: 0,
+      def: def,
+      responses: []
+    }
+    setTimeout(function () {
+      var timedOutQuery = self.activeQueries[requestId.toString()]
+      // could have been resolved by the transfer protocol
+      if (timedOutQuery) {
+        def.resolve(timedOutQuery.originalRequest)
+        delete self.activeQueries[requestId.toString()]
       }
-      setTimeout(function () {
-        var timedOutQuery = self.activeQueries[requestId.toString()]
-        // could have been resolved by the transfer protocol
-        if (timedOutQuery) {
-          resolve(timedOutQuery.responses)
-          delete self.activeQueries[requestId.toString()]
-        }
-      }, self.MAXIMUM_QUERY_TIME_PRIMARY * 1000)
-    })
-      .then((request) => request.getResult())
+    }, self.MAXIMUM_QUERY_TIME_PRIMARY * 1000)
+    return def.promise.then((request) => request.getResult())
   }
   requestProcessor (nrOfExpectedResponses, request) {
     let self = this
     var requestId = request.getId().toString()
     if (request.request.queryRequest) {
       var response = { id: self.myId }// TODO: ADD real response
-      new Promise(function (resolve, reject) {
-        var activeQuery = {
-          originalRequest: request,
-          expectedResponses: (nrOfExpectedResponses + 1), // +1 is my node
-          receivedResponses: 0,
-          resolve: resolve,
-          reject: reject,
-          responses: []
-        }
-        if (self.recentQueries.indexOf(request.getId().toString()) > -1) {
-          let result = activeQuery.originalRequest
-          result.setDuplicate()
-          return resolve(result)
-        } else {
-          self.activeQueries[requestId] = activeQuery
-        }
-        self.recentQueries.push(requestId)
-        setTimeout(() => self.recentQueries.shift(), self.MAXIMUM_QUERY_TIME_RECENT * 1000)
-        activeQuery.responses.push(response)
-        activeQuery.receivedResponses++
-        if (activeQuery.expectedResponses === activeQuery.receivedResponses) {
-          let result = activeQuery.originalRequest
-          result.setResult(activeQuery.responses)
-          resolve(result)
-        } else {
-          setTimeout(function () {
-            var timedOutQuery = self.activeQueries[requestId]
-            // could have been resolved by the transfer protocol
-            if (timedOutQuery) {
-              var result = timedOutQuery.originalRequest
-              result.setResult(timedOutQuery.responses)
-              resolve(result)
-              delete self.activeQueries[requestId]
-            }
-          }, self.MAXIMUM_QUERY_TIME_SECONDARY * 1000)
-        }
-      })
-      .then(function (queryResult) {
+      var def = deferred()
+      def.promise.then(function (queryResult) {
         var myIndex = queryResult.getRoute().indexOf(self.myId)
         if (self.activeQueryConnections[queryResult.getRoute()[myIndex - 1]]) {
           self.activeQueryConnections[queryResult.getRoute()[myIndex - 1]].push(queryResult.serialize())
         }
       })
+      var activeQuery = {
+        originalRequest: request,
+        expectedResponses: (nrOfExpectedResponses + 1), // +1 is my node
+        receivedResponses: 0,
+        def: def,
+        responses: []
+      }
+      if (self.recentQueries.indexOf(request.getId().toString()) > -1) {
+        let result = activeQuery.originalRequest
+        result.setDuplicate()
+        return def.resolve(result)
+      } else {
+        self.activeQueries[requestId] = activeQuery
+      }
+      self.recentQueries.push(requestId)
+      setTimeout(() => self.recentQueries.shift(), self.MAXIMUM_QUERY_TIME_RECENT * 1000)
+      activeQuery.responses.push(response)
+      activeQuery.receivedResponses++
+      if (activeQuery.expectedResponses === activeQuery.receivedResponses) {
+        let result = activeQuery.originalRequest
+        result.setResult(activeQuery.responses)
+        def.resolve(result)
+      } else {
+        setTimeout(function () {
+          var timedOutQuery = self.activeQueries[requestId]
+          // could have been resolved by the transfer protocol
+          if (timedOutQuery) {
+            var result = timedOutQuery.originalRequest
+            result.setResult(timedOutQuery.responses)
+            def.resolve(result)
+            delete self.activeQueries[requestId]
+          }
+        }, self.MAXIMUM_QUERY_TIME_SECONDARY * 1000)
+      }
     } else {
       self.dbManager.fileExists(request.getFile()).then(function (exists) {
         if (exists) {
@@ -139,9 +135,6 @@ module.exports = class RequestHandler {
           if (err) console.error(err)
           connection.getObservedAddrs(function (err, data) {
             if (err) console.error(err)
-            // self.node.hangUpByMultiaddr(data[0].toString(), function (err) {
-            // if (err)console.error(err)
-            // })
             var addr = data[0].toString().split('/')
             self.disconnectConnection(addr[addr.length - 1])
           })
@@ -177,14 +170,14 @@ module.exports = class RequestHandler {
           if (activeQuery.receivedResponses === activeQuery.expectedResponses) {
             var result = activeQuery.originalRequest
             result.setResult(activeQuery.responses)
-            activeQuery.resolve(result)
+            activeQuery.def.resolve(result)
             delete self.activeQueries[parsedRequest.getId().toString()]
           }
         }
       } else if (parsedRequest.request.ftpRequest) {
         self.activeFileRequests[parsedRequest.getId().toString()].responseReceived = true
         if (!parsedRequest.getResult().accepted) {
-          self.activeFileRequests[parsedRequest.getId().toString()].reject(parsedRequest.getResult().error)
+          self.activeFileRequests[parsedRequest.getId().toString()].def.reject(parsedRequest.getResult().error)
           delete self.activeFileRequests[parsedRequest.getId().toString()]
         } else {
         // store parsedRequest.result.fileInfo
@@ -217,25 +210,24 @@ module.exports = class RequestHandler {
       self.dbManager.getFileWriter(fileHash, function (err) {
         if (err) throw err
         self.activeFtpConnections[userHash].activeIncoming = false
-        self.activeFileRequests[requestId.toString()].resolve()
+        self.activeFileRequests[requestId.toString()].def.resolve()
         delete self.activeFileRequests[requestId.toString()]
       })
     )
 
-    return new Promise(function (resolve, reject) {
-      self.activeFileRequests[requestId.toString()] = {
-        originalRequest: ftpRequestToSend,
-        resolve: resolve,
-        reject: reject,
-        responseReceived: false
+    var def = deferred()
+    self.activeFileRequests[requestId.toString()] = {
+      originalRequest: ftpRequestToSend,
+      def: def,
+      responseReceived: false
+    }
+    self.sendRequestToUser(userHash, ftpRequestToSend)
+    setTimeout(function () {
+      if (!self.activeFileRequests[requestId.toString()] || !self.activeFileRequests[requestId.toString()].responseReceived) {
+        def.reject('Request TIMED OUT')
+        delete self.activeFileRequests[requestId.toString()]
       }
-      self.sendRequestToUser(userHash, ftpRequestToSend)
-      setTimeout(function () {
-        if (!self.activeFileRequests[requestId.toString()] || !self.activeFileRequests[requestId.toString()].responseReceived) {
-          reject('Request TIMED OUT')
-          delete self.activeFileRequests[requestId.toString()]
-        }
-      }, self.MAXIMUM_FILE_REQUEST_TIME * 1000)
-    })
+    }, self.MAXIMUM_FILE_REQUEST_TIME * 1000)
+    return def.promise
   }
 }
