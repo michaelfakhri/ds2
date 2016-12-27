@@ -5,6 +5,8 @@ const pullDecode = require('pull-utf8-decoder')
 const isNode = require('detect-node')
 const PullBlobStore = (isNode) ? require('fs-pull-blob-store') : require('idb-pull-blob-store')
 
+const deferred = require('deferred')
+
 module.exports = class DatabaseManager {
   constructor (fileMetadata) {
     this.metadata = fileMetadata
@@ -15,13 +17,7 @@ module.exports = class DatabaseManager {
   }
 
   configExists () {
-    let config = this.config
-    return new Promise(function (resolve, reject) {
-      config.exists('config', function (err, exists) {
-        if (err) return reject(err)
-        resolve(exists)
-      })
-    })
+    return deferred.promisify(this.config.exists.bind(this.config))('config')
   }
 
   getConfig () {
@@ -51,28 +47,22 @@ module.exports = class DatabaseManager {
   }
 
   fileExists (fileHash) {
-    let storage = this.files
-    return new Promise(function (resolve, reject) {
-      storage.exists(fileHash, function (err, exists) {
-        if (err) return reject(err)
-        resolve(exists)
-      })
-    })
+    return deferred.promisify(this.files.exists.bind(this.files))(fileHash)
   }
   storeFile () {
 
   }
   getFile (fileHash) {
-    return new Promise((resolve, reject) => {
-      stream(
+    var def = deferred()
+    stream(
         this.getFileReader(fileHash),
         stream.flatten(),
         stream.collect(function (err, arr) {
-          if (err) return reject(err)
-          resolve(arr)
+          if (err) return def.reject(err)
+          def.resolve(arr)
         })
       )
-    })
+    return def.promise
   }
   getFileWriter (fileHash, cb) {
     return this.files.write(fileHash, function (err) {
@@ -84,11 +74,6 @@ module.exports = class DatabaseManager {
     return this.files.read(fileHash)
   }
   deleteFile (fileHash) {
-    return new Promise((resolve, reject) => {
-      this.files.remove(fileHash, function (err) {
-        if (err) return reject(err)
-        resolve()
-      })
-    })
+    return deferred.promisify(this.files.remove)(fileHash)
   }
 }
