@@ -95,14 +95,14 @@ module.exports = class RequestHandler {
     } else {
       self.dbManager.fileExists(request.getFile()).then(function (exists) {
         if (exists) {
-          request.setResult({ accepted: true })
+          request.setResult([{ accepted: true }])
           // add fileInfo
           stream(
             self.dbManager.getFileReader(request.getFile()),
             self.activeFtpConnections[request.getRoute()[0]].connection
           )
         } else {
-          request.setResult({ accepted: false, error: 'file NOT found' })
+          request.setResult([{ accepted: false, error: 'file NOT found' }])
         }
         self.activeQueryConnections[request.getRoute()[0]].push(request.serialize())
       })
@@ -161,23 +161,10 @@ module.exports = class RequestHandler {
     } else {
       var activeRequest = this.activeRequests[parsedRequest.getId()]
       activeRequest.receivedResponses++
-      if (parsedRequest.getType() === 'query') {
-        // response propagation handling
-        parsedRequest.getResult().forEach((elementInArray) => activeRequest.responses.push(elementInArray))
-        if (activeRequest.receivedResponses === activeRequest.expectedResponses) {
-          var result = activeRequest.originalRequest
-          result.setResult(activeRequest.responses)
-          activeRequest.def.resolve(result)
-        }
-      } else if (parsedRequest.getType() === 'file') {
-        if (!parsedRequest.getResult().accepted) {
-          activeRequest.def.reject(parsedRequest.getResult().error)
-        } else {
-          // store parsedRequest.result.fileInfo
-          return
-        }
-      }
+      parsedRequest.getResult().forEach((elementInArray) => activeRequest.responses.push(elementInArray))
       if (activeRequest.receivedResponses === activeRequest.expectedResponses) {
+        activeRequest.originalRequest.setResult(activeRequest.responses)
+        activeRequest.def.resolve(activeRequest.originalRequest)
         delete self.activeRequests[parsedRequest.getId()]
       }
     }
@@ -191,6 +178,7 @@ module.exports = class RequestHandler {
   }
 
   buildAndSendFileRequest (fileHash, userHash) {
+    var deferredFile = deferred()
     var self = this
     if (!self.activeFtpConnections[userHash] || !self.activeQueryConnections[userHash]) {
       throw new Error('user is not connected')
@@ -207,8 +195,7 @@ module.exports = class RequestHandler {
       self.dbManager.getFileWriter(fileHash, function (err) {
         if (err) throw err
         self.activeFtpConnections[userHash].activeIncoming = false
-        self.activeRequests[requestId].def.resolve()
-        delete self.activeRequests[requestId]
+        deferredFile.resolve()
       })
     )
 
@@ -220,6 +207,13 @@ module.exports = class RequestHandler {
       def: def,
       responses: []
     }
+    def.promise.then((request) => {
+        if (!request.getResult()[0].accepted) {
+          deferredFile.reject(parsedRequest.getResult()[0].error)
+        }
+      },
+      deferredFile.reject
+    )
     self.sendRequestToUser(userHash, ftpRequestToSend)
     setTimeout(function () {
       if (!self.activeRequests[requestId] || !self.activeRequests[requestId].receivedResponses > 0) {
@@ -227,6 +221,6 @@ module.exports = class RequestHandler {
         delete self.activeRequests[requestId]
       }
     }, self.MAXIMUM_FILE_REQUEST_TIME * 1000)
-    return def.promise
+    return deferredFile.promise
   }
 }
