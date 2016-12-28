@@ -19,6 +19,8 @@ gulp.task('test:browser:after', (done) => {
 })
 gulp.task('test:node:before', (done) => {
   serverStart(done)
+  del.sync('config')
+  del.sync('files*')
 })
 gulp.task('test:node:after', (done) => {
   del.sync('config')
