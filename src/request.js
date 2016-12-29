@@ -8,54 +8,54 @@ const MAXIMUM_TIME_TO_LIVE_FTP = 1
 
 class Request {
   constructor (aRequest) {
-    this.request = aRequest
+    this._request = aRequest
   }
 
   setResult (aResult) {
-    this.request.isResponse = true
-    this.request.timeToLive = 0
-    this.request.result = aResult
+    this._request.isResponse = true
+    this._request.timeToLive = 0
+    this._request.result = aResult
   }
   isResponse () {
-    return this.request.isResponse
+    return this._request.isResponse
   }
   decrementTimeToLive () {
-    return --this.request.timeToLive
+    return --this._request.timeToLive
   }
   addToRoute (aUserHash) {
-    this.request.route.push(aUserHash)
+    this._request.route.push(aUserHash)
   }
 
   getRoute () {
-    return this.request.route
+    return this._request.route
   }
   getId () {
-    return this.request.id.toString()
+    return this._request.id.toString()
   }
   getResult () {
-    return this.request.result
+    return this._request.result
   }
   getFile () {
-    return this.request.request.file
+    return this._request.request.file
   }
   isAccepted () {
-    return this.request.result.accepted
+    return this._request.result.accepted
   }
   serialize () {
-    return JSON.stringify(this.request)
+    return JSON.stringify(this._request)
   }
-  getType() {
-    return this.request.type
+  getType () {
+    return this._request.type
   }
 }
 
-exports = module.exports = Request
+module.exports = Request
 
-exports.create = function (myId, type, aRequest) {
+Request.create = function (myId, type, aRequest) {
   let request = {}
   request.request = aRequest
   request.type = type
- if (type === 'query') {
+  if (type === 'query') {
     request.timeToLive = MAXIMUM_TIME_TO_LIVE_QUERY
   } else if (type === 'file') {
     request.timeToLive = MAXIMUM_TIME_TO_LIVE_FTP
@@ -69,6 +69,6 @@ exports.create = function (myId, type, aRequest) {
   return new Request(request)
 }
 
-exports.createFromString = function (aReqStr) {
+Request.createFromString = function (aReqStr) {
   return new Request(JSON.parse(aReqStr))
 }
