@@ -12,11 +12,11 @@ describe('Config storage in db', () => {
 
     new UP2P()
       .then((peer) => { peer1 = peer })
-      .then(() => peer1.db.getConfig())
+      .then(() => peer1._connectionHandler._db.getConfig())
       .then((config) => { config1 = config })
       .then(() => new UP2P())
       .then((peer) => { peer2 = peer })
-      .then(() => peer2.db.getConfig())
+      .then(() => peer2._connectionHandler._db.getConfig())
       .then((config) => { config2 = config })
       .then(() => assert.deepEqual(config1, config2)) // they equal each other since they share the same storage medium
       .then(done)
