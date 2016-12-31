@@ -53,8 +53,7 @@
     "mocha": "^3.2.0",
     "multiaddr": "^2.1.1",
     "rimraf": "^2.5.4",
-    "string-replace-loader": "^1.0.5",
-    "webpack": "^2.1.0-beta.28"
+    "string-replace-loader": "^1.0.5"
   },
   "dependencies": {
     "deferred": "^0.7.5",

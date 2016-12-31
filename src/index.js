@@ -62,11 +62,11 @@ module.exports = class UniversalPeerToPeer {
   }
 
   copy (aDataHashStr, aUserHashStr) {
-    return this._connectionHandler.sendFileRequest(aDataHashStr, aUserHashStr)
+    return this._connectionHandler._requestHandler.buildAndSendFileRequest(aDataHashStr, aUserHashStr)
   }
 
   query (aQuery) {
-    return this._connectionHandler.sendQuery(aQuery)
+    return this._connectionHandler._requestHandler.buildAndSendQuery(aQuery)
   }
 }
 module.exports.Buffer = Buffer

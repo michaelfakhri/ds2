@@ -70,10 +70,4 @@ module.exports = class ConnectionHandler {
     this._requestHandler.disconnectConnection(userHash)
     return deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)
   }
-  sendQuery (aQuery) {
-    return this._requestHandler.buildAndSendQuery(aQuery)
-  }
-  sendFileRequest (file, user) {
-    return this._requestHandler.buildAndSendFileRequest(file, user)
-  }
 }
