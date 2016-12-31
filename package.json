@@ -46,14 +46,15 @@
   },
   "homepage": "https://github.com/michaelfakhri/universal-peer-to-peer#readme",
   "devDependencies": {
-    "aegir": "^9.3.0",
     "chai": "^3.5.0",
     "gulp": "^3.9.1",
     "libp2p-webrtc-star": "^0.7.0",
     "mocha": "^3.2.0",
     "multiaddr": "^2.1.1",
     "rimraf": "^2.5.4",
-    "string-replace-loader": "^1.0.5"
+    "string-replace-loader": "^1.0.5",
+    "webpack": "^2.2.0-rc.3",
+    "aegier": "^9.3.0"
   },
   "dependencies": {
     "deferred": "^0.7.5",
