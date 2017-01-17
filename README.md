@@ -2,6 +2,10 @@
 ## API
 <h3>constructor([PeerId], QueryProcessor)</h3>
 returns a promise that resolves to an instance of this module.
+<h3>start()</h3>
+returns a promise that resolves when network layer (libp2p) is started.
+<h3>stop()</h3>
+returns a promise that resolves when network layer (libp2p) is stopped.
 <h3>connect(user)</h3>
 returns a promise that resolves when peer is connected.
 <h3>disconnect(user)</h3>
