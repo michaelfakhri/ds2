@@ -1,6 +1,6 @@
 <h1 align="center">UP2P in the browser</h1>
 ## API
-<h3>constructor([PeerId], QueryProcessor)</h3>
+<h3>constructor(fileMetadataHandler, [PeerId])</h3>
 returns a promise that resolves to an instance of this module.
 <h3>start()</h3>
 returns a promise that resolves when network layer (libp2p) is started.
