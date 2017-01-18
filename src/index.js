@@ -12,11 +12,11 @@ const ConnectionHandler = require('./connectionHandler')
 
 module.exports = class UniversalPeerToPeer {
 
-  constructor (aPeerId, aFileMetadataHandler) {
+  constructor (aFileMetadataHandler, aPeerId) {
     this._connectionHandler
 
     let self = this
-    return new ConnectionHandler(aPeerId, aFileMetadataHandler) // returns a promise that resolves to the connectionHandler after all async tasks are completed
+    return new ConnectionHandler(aFileMetadataHandler, aPeerId) // returns a promise that resolves to the connectionHandler after all async tasks are completed
       .then((connectionHandler) => {
         self._connectionHandler = connectionHandler
         return deferred(self)
