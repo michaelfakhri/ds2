@@ -2,8 +2,7 @@
 
 const stream = require('pull-stream')
 const pullDecode = require('pull-utf8-decoder')
-const isNode = require('detect-node')
-const PullBlobStore = (isNode) ? require('fs-pull-blob-store') : require('idb-pull-blob-store')
+const PullBlobStore = require('idb-pull-blob-store')
 
 const deferred = require('deferred')
 

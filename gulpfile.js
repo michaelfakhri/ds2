@@ -1,32 +1,19 @@
 'use strict'
 const gulp = require('gulp')
 const signalling = require('libp2p-webrtc-star/src/sig-server')
-const del = require('rimraf')
 
 let server
 
 require('aegir/gulp')(gulp)
 
-// gulp lint from gulp tasks in aegir
-// gulp test from gulp tasks in aegir
-// gulp coverage from gulp tasks in aegir
-
 gulp.task('test:browser:before', (done) => {
   serverStart(done)
 })
+
 gulp.task('test:browser:after', (done) => {
   server.stop(done)
 })
-gulp.task('test:node:before', (done) => {
-  serverStart(done)
-  del.sync('config')
-  del.sync('files*')
-})
-gulp.task('test:node:after', (done) => {
-  del.sync('config')
-  del.sync('files*')
-  server.stop(done)
-})
+
 function serverStart (done) {
   signalling.start({
     host: '127.0.0.1',

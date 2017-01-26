@@ -1,8 +1,5 @@
 'use strict'
 
-const isNode = require('detect-node')
-const crypto = require('crypto')
-
 const MAXIMUM_TIME_TO_LIVE_QUERY = 5
 const MAXIMUM_TIME_TO_LIVE_FTP = 1
 
@@ -63,7 +60,7 @@ Request.create = function (myId, type, aRequest) {
   } else if (type === 'file') {
     request.timeToLive = MAXIMUM_TIME_TO_LIVE_FTP
   }
-  request.id = (isNode) ? crypto.randomBytes(32).readUIntBE(0, 8) : window.crypto.getRandomValues(new Uint32Array(1))[0]
+  request.id = window.crypto.getRandomValues(new Uint32Array(1))[0]
   request.response = false
   request.route = [myId]
   request.isResponse = false

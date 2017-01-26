@@ -1,44 +1,24 @@
 {
   "name": "universal-peer-to-peer",
-  "version": "0.5.0",
+  "version": "0.0.0",
   "description": "content addressable P2P network",
   "main": "src/index.js",
   "browser": {
     "fs": false,
     "crypto": false,
-    "wrtc": false,
-    "fs-pull-blob-store": false
+    "wrtc": false
   },
   "directories": {
     "src": "src",
     "example": "examples",
     "test": "test"
   },
-  "scripts": {
-    "lint": "gulp lint",
-    "build": "gulp build",
-    "test": "gulp test",
-    "coverage": "gulp coverage",
-    "coverage-publish": "aegir-coverage publish"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/michaelfakhri/universal-peer-to-peer.git"
   },
-  "keywords": [
-    "P2P",
-    "content",
-    "addressable",
-    "WebRTC",
-    "UP2P",
-    "universal",
-    "peer",
-    "to",
-    "peer",
-    "P2Pedia",
-    "IndexedDb",
-    "browser]"
-  ],
+  "keywords": [],
   "author": "Michael Fakhry",
   "license": "ISC",
   "bugs": {
@@ -49,20 +29,13 @@
     "chai": "^3.5.0",
     "gulp": "^3.9.1",
     "libp2p-webrtc-star": "^0.8.1",
-    "mocha": "^3.2.0",
     "multiaddr": "^2.2.0",
-    "rimraf": "^2.5.4",
-    "string-replace-loader": "^1.0.5",
-    "aegir": "^9.3.3",
-    "webpack": "^2.2.0-rc.3"
+    "aegir": "^9.3.3"
   },
   "dependencies": {
     "deferred": "^0.7.5",
-    "detect-node": "^2.0.3",
-    "fs-pull-blob-store": "^0.4.1",
     "idb-pull-blob-store": "^0.5.1",
     "libp2p-ipfs-browser": "^0.17.6",
-    "lodash": "^4.17.3",
     "logplease": "^1.2.12",
     "multihashing-async": "^0.3.0",
     "peer-id": "^0.8.1",
