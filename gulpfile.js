@@ -1,6 +1,6 @@
 'use strict'
 const gulp = require('gulp')
-const signalling = require('libp2p-webrtc-star/src/signalling')
+const signalling = require('libp2p-webrtc-star/src/sig-server')
 const del = require('rimraf')
 
 let server

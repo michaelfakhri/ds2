@@ -75,4 +75,4 @@ module.exports = class UniversalPeerToPeer {
     return this._connectionHandler._db.queryMetadata(aQueryStr)
   }
 }
-module.exports.Buffer = Buffer
+// module.exports.Buffer = Buffer
