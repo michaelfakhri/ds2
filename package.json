@@ -26,22 +26,22 @@
   },
   "homepage": "https://github.com/michaelfakhri/universal-peer-to-peer#readme",
   "devDependencies": {
-    "chai": "^3.5.0",
-    "gulp": "^3.9.1",
-    "libp2p-webrtc-star": "^0.8.1",
-    "multiaddr": "^2.2.0",
-    "aegir": "^9.3.3"
+    "chai": "3.5.0",
+    "gulp": "3.9.1",
+    "libp2p-webrtc-star": "0.8.1",
+    "multiaddr": "2.2.0",
+    "aegir": "9.3.3"
   },
   "dependencies": {
-    "deferred": "^0.7.5",
-    "idb-pull-blob-store": "^0.5.1",
-    "libp2p-ipfs-browser": "^0.17.6",
-    "logplease": "^1.2.12",
-    "multihashing-async": "^0.3.0",
-    "peer-id": "^0.8.1",
-    "peer-info": "^0.8.2",
-    "pull-pushable": "^2.0.1",
-    "pull-stream": "^3.5.0",
-    "pull-utf8-decoder": "^1.0.2"
+    "deferred": "0.7.5",
+    "idb-pull-blob-store": "0.5.1",
+    "libp2p-ipfs-browser": "0.17.6",
+    "logplease": "1.2.12",
+    "multihashing-async": "0.3.0",
+    "peer-id": "0.8.1",
+    "peer-info": "0.8.2",
+    "pull-pushable": "2.0.1",
+    "pull-stream": "3.5.0",
+    "pull-utf8-decoder": "1.0.2"
   }
 }
