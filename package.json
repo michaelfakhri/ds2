@@ -28,14 +28,16 @@
   "devDependencies": {
     "chai": "3.5.0",
     "gulp": "3.9.1",
-    "libp2p-webrtc-star": "0.8.8",
     "multiaddr": "2.2.0",
     "aegir": "9.4.0"
   },
   "dependencies": {
     "deferred": "0.7.5",
     "idb-pull-blob-store": "0.5.1",
-    "libp2p-ipfs-browser": "0.18.3",
+    "libp2p": "0.5.4",
+    "libp2p-secio": "0.6.7",
+    "libp2p-spdy": "0.10.4",
+    "libp2p-webrtc-star": "0.8.8",
     "logplease": "1.2.13",
     "multihashing-async": "0.4.1",
     "peer-id": "0.8.2",

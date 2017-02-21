@@ -5,7 +5,7 @@ const stream = require('pull-stream')
 const pullPushable = require('pull-pushable')
 const pullDecode = require('pull-utf8-decoder')
 const PeerInfo = require('peer-info')
-const Libp2PIpfsBrowser = require('libp2p-ipfs-browser')
+const Libp2p = require('./libp2p')
 const Logger = require('logplease')
 const deferred = require('deferred')
 Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
@@ -65,7 +65,7 @@ module.exports = class ConnectionHandler {
   start (aPeerId) {
     let self = this
     let peerInfo = new PeerInfo(aPeerId)
-    self._node = new Libp2PIpfsBrowser(peerInfo)
+    self._node = new Libp2p(peerInfo)
     self._node.handle('/UP2P/queryTransfer', (protocol, conn) => self.initQueryStream(conn))
     self._node.handle('/UP2P/fileTransfer', (protocol, conn) => self.initFtpStream(conn))
     let ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + aPeerId.toB58String()
