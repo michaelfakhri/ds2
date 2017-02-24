@@ -22,5 +22,3 @@ returns a promise that resolves when data is downloaded.
 returns a promise that resolves to the data stored.
 <h3>query(queryString)</h3>
 returns promise that resolves when query responses are received.
-<h3>queryLocal(queryString)</h3>
-returns promise that resolves when query responses of the local database are retreived.
