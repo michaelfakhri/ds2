@@ -23,7 +23,12 @@ module.exports = class DatabaseManager {
     let self = this
     self.queryMetadata(request.getQuery())
       .then((queryResult) => {
-        let response = {id: self.myId, result: queryResult}
+      let response
+      if(request.isRequestOriginThisNode()) {
+        response = {id: 'local', result: queryResult}
+      } else {
+        response = {id: self.myId, result: queryResult}
+      }
         request.setResult([response])
         self._EE.emit('IncomingResponse', request)
       })
