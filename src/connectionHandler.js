@@ -135,4 +135,12 @@ module.exports = class ConnectionHandler {
     delete this.activeQueryConnections[userHash]
     delete this._node.swarm.muxedConns[userHash]
   }
+
+  getIdentity () {
+    return this.myId
+  }
+
+  getConnectedPeers () {
+    return Object.keys(this.activeQueryConnections)
+  }
 }

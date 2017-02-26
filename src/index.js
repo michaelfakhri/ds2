@@ -82,4 +82,12 @@ module.exports = class UniversalPeerToPeer {
     this._EE.emit('IncomingRequest', request)
     return request.getDeferred().promise
   }
+
+  getIdentity () {
+    return this._connectionHandler.getIdentity()
+  }
+
+  getConnectedPeers () {
+    return this._connectionHandler.getConnectedPeers()
+  }
 }
