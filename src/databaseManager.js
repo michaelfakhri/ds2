@@ -23,12 +23,12 @@ module.exports = class DatabaseManager {
     let self = this
     self.queryMetadata(request.getQuery())
       .then((queryResult) => {
-      let response
-      if(request.isRequestOriginThisNode()) {
-        response = {id: 'local', result: queryResult}
-      } else {
-        response = {id: self.myId, result: queryResult}
-      }
+        let response
+        if (request.isRequestOriginThisNode()) {
+          response = {id: 'local', result: queryResult}
+        } else {
+          response = {id: self.myId, result: queryResult}
+        }
         request.setResult([response])
         self._EE.emit('IncomingResponse', request)
       })
@@ -51,6 +51,7 @@ module.exports = class DatabaseManager {
         if (exists) {
           self.getMetadata(request.getFile()).then((metadata) => {
             request.setResult([{accepted: true, metadata: metadata}])
+            self._EE.emit('ReturnToSender', request)
             stream(
               self.getFileReader(request.getFile()),
               request.getConnection()
@@ -58,8 +59,8 @@ module.exports = class DatabaseManager {
           })
         } else {
           request.setResult([{accepted: false, error: 'file NOT found'}])
+          self._EE.emit('ReturnToSender', request)
         }
-        self._EE.emit('ReturnToSender', request)
       })
     }
   }
