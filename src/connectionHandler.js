@@ -13,10 +13,12 @@ Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
 const logger = Logger.create('ConnectionHandler', { color: Logger.Colors.Blue })
 
 module.exports = class ConnectionHandler {
-  constructor (EE) {
+  constructor (EE, options) {
     this._EE = EE
     this.activeQueryConnections = {}
     this.activeFtpConnections = {}
+    this._options = options
+    this._signalling = options.signalling || '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/'
     this._node
     this.myId
 
@@ -61,7 +63,7 @@ module.exports = class ConnectionHandler {
   onReleaseConnection (userHash) {
     let self = this
     this.activeFtpConnections[userHash].activeIncoming = false
-    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + userHash
+    var ma = this._signalling + userHash
     deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer')
       .then((conn) => self.initFtpStream(conn))
   }
@@ -69,10 +71,10 @@ module.exports = class ConnectionHandler {
   start (aPeerId) {
     let self = this
     let peerInfo = new PeerInfo(aPeerId)
-    self._node = new Libp2p(peerInfo)
+    self._node = new Libp2p(peerInfo, self._options)
     self._node.handle('/UP2P/queryTransfer', (protocol, conn) => self.initQueryStream(conn))
     self._node.handle('/UP2P/fileTransfer', (protocol, conn) => self.initFtpStream(conn))
-    let ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + aPeerId.toB58String()
+    let ma = this._signalling + aPeerId.toB58String()
     peerInfo.multiaddr.add(ma)
     logger.debug('YOU CAN REACH ME AT ID = ' + aPeerId.toB58String())
     this.myId = aPeerId.toB58String()
@@ -80,7 +82,8 @@ module.exports = class ConnectionHandler {
     // return peer-id instance after libp2p node is started so other modules can use it
     return deferred.promisify(self._node.start.bind(self._node))().then(() => aPeerId)
   }
-  connect (ma) {
+  connect (userHash) {
+    let ma = this._signalling + userHash
     let self = this
     return deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/queryTransfer')
       .then((conn) => self.initQueryStream(conn))
@@ -89,7 +92,7 @@ module.exports = class ConnectionHandler {
   }
 
   disconnect (userHash) {
-    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + userHash
+    var ma = this._signalling + userHash
     // TODO: REMOVE THE FOLLOWING LINE WHEN HANGUP BUG IS INVESTIGATED/FIXED
     this.disconnectConnection(userHash)
     return deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)

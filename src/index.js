@@ -17,15 +17,17 @@ const ConnectionHandler = require('./connectionHandler')
 
 module.exports = class UniversalPeerToPeer {
 
-  constructor (aFileMetadataHandler) {
+  constructor (aFileMetadataHandler, options) {
     if (!aFileMetadataHandler) {
       throw new Error('Must specify at least the file metadataHandler')
     }
 
+    options = options || {}
+
     this._EE = new EE()
-    this._requestHandler = new RequestHandler(this._EE)
-    this._connectionHandler = new ConnectionHandler(this._EE)
-    this._db = new DatabaseManager(aFileMetadataHandler, this._EE)
+    this._requestHandler = new RequestHandler(this._EE, options)
+    this._connectionHandler = new ConnectionHandler(this._EE, options)
+    this._db = new DatabaseManager(aFileMetadataHandler, this._EE, options)
   }
 
   start (aPeerId) {
@@ -40,9 +42,8 @@ module.exports = class UniversalPeerToPeer {
   }
 
   connect (aUserHashStr) {
-    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + aUserHashStr
     logger.debug('Attempting to connect to ' + aUserHashStr)
-    return this._connectionHandler.connect(ma)
+    return this._connectionHandler.connect(aUserHashStr)
   }
   disconnect (aUserHashStr) {
     return this._connectionHandler.disconnect(aUserHashStr)

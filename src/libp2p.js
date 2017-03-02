@@ -6,8 +6,15 @@ const secio = require('libp2p-secio')
 const libp2p = require('libp2p')
 
 class Node extends libp2p {
-  constructor (peerInfo) {
+  constructor (peerInfo, options) {
+    let encryption
     const webRTCStar = new WebRTCStar()
+
+    if (options.useEncryption) {
+      encryption = [secio]
+    } else {
+      encryption = []
+    }
 
     const modules = {
       transport: [
@@ -17,9 +24,7 @@ class Node extends libp2p {
         muxer: [
           spdy
         ],
-        crypto: [
-          secio
-        ]
+        crypto: encryption
       },
       discovery: []
     }
