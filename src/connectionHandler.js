@@ -41,10 +41,10 @@ module.exports = class ConnectionHandler {
       let userHash = request.getTarget()
       var deferredFile = request.getDeferred()
       if (!self.activeFtpConnections[userHash] || !self.activeQueryConnections[userHash]) {
-        deferredFile.reject(new Error('user is not connected'))
+        return deferredFile.reject(new Error('user is not connected'))
       }
       if (self.activeFtpConnections[userHash].activeIncoming) {
-        deferredFile.reject(new Error('There is a file currently being transferred'))
+        return deferredFile.reject(new Error('There is a file currently being transferred'))
       }
       request.attachConnection(self.activeFtpConnections[userHash].connection)
       self.activeFtpConnections[userHash].activeIncoming = true
@@ -59,7 +59,11 @@ module.exports = class ConnectionHandler {
     this.sendRequestToUser(request.getRoute()[myIndex - 1], request)
   }
   onReleaseConnection (userHash) {
+    let self = this
     this.activeFtpConnections[userHash].activeIncoming = false
+    var ma = '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' + userHash
+    deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer')
+      .then((conn) => self.initFtpStream(conn))
   }
 
   start (aPeerId) {
