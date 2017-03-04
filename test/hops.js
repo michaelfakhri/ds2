@@ -71,5 +71,4 @@ describe('Query hops', () => {
   function parseQueryResult (responses) {
     return responses.map((response) => response.id)
   }
-
 })

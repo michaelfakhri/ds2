@@ -75,5 +75,4 @@ describe('Connection Handler', () => {
       })
       .catch((err) => console.error(err.stack))
   })
-
 })
