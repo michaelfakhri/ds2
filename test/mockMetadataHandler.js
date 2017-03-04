@@ -20,5 +20,9 @@ module.exports = class MetadataHandler {
     if (this.storage[aQueryStr]) return deferred(this.storage[aQueryStr])
     else return deferred(undefined)
   }
+  delete (fileHash) {
+    delete this.storage[fileHash]
+    return deferred(undefined)
+  }
 }
 

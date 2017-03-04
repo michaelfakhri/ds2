@@ -71,6 +71,7 @@ module.exports = class UniversalPeerToPeer {
 
   delete (aDataHashStr) {
     return this._db.deleteFile(aDataHashStr)
+      .then(() => this._db.deleteMetadata(aDataHashStr))
   }
 
   copy (aDataHashStr, aUserHashStr) {

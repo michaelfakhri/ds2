@@ -164,4 +164,7 @@ module.exports = class DatabaseManager {
   queryMetadata (aQueryStr) {
     return this.metadata.query(aQueryStr)
   }
+  deleteMetadata (fileHash) {
+    return this.metadata.delete(fileHash)
+  }
 }
