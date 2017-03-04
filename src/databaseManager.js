@@ -153,7 +153,7 @@ module.exports = class DatabaseManager {
     return this.files.read(fileHash)
   }
   deleteFile (fileHash) {
-    return deferred.promisify(this.files.remove)(fileHash)
+    return deferred.promisify(this.files.remove.bind(this.files))(fileHash)
   }
   storeMetadata (fileHash, metadata) {
     return this.metadata.store(fileHash, metadata)
