@@ -2,9 +2,6 @@
 
 const defer = require('deferred')
 
-const MAXIMUM_TIME_TO_LIVE_QUERY = 5
-const MAXIMUM_TIME_TO_LIVE_FTP = 1
-
 class Request {
   constructor (aRequest, target) {
     this._request = aRequest
@@ -104,15 +101,12 @@ class Request {
 
 module.exports = Request
 
-Request.create = function (type, aRequest, target) {
+Request.create = function (type, aRequest, target, hops) {
   let request = {}
   request.request = aRequest
   request.type = type
-  if (type === 'query') {
-    request.timeToLive = MAXIMUM_TIME_TO_LIVE_QUERY
-  } else if (type === 'file') {
-    request.timeToLive = MAXIMUM_TIME_TO_LIVE_FTP
-  }
+  request.timeToLive = hops
+
   request.id = window.crypto.getRandomValues(new Uint32Array(1))[0]
   request.response = false
   request.route = []

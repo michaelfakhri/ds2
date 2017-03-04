@@ -1,7 +1,8 @@
 /* eslint-env mocha */
 'use strict'
 
-require('./ConnectionHandler')
+require('./connectionHandler')
+require('./hops')
 require('./query')
 require('./config')
 require('./file')

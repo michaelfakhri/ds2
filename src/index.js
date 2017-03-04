@@ -8,12 +8,13 @@ const EE = require('events').EventEmitter
 const Request = require('./request')
 const DatabaseManager = require('./databaseManager')
 const RequestHandler = require('./requestHandler')
-
 Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
 
 const logger = Logger.create('UP2P', { color: Logger.Colors.Blue })
 
 const ConnectionHandler = require('./connectionHandler')
+
+const DEFAULT_HOPS_QUERY = 5
 
 module.exports = class UniversalPeerToPeer {
 
@@ -73,13 +74,14 @@ module.exports = class UniversalPeerToPeer {
   }
 
   copy (aDataHashStr, aUserHashStr) {
-    let request = Request.create('file', {file: aDataHashStr}, aUserHashStr)
+    let request = Request.create('file', {file: aDataHashStr}, aUserHashStr, 2) // 1 for target user and +1 for processing by current node
     this._EE.emit('IncomingRequest', request)
     return request.getDeferred().promise
   }
 
-  query (aQueryStr) {
-    let request = Request.create('query', aQueryStr)
+  query (aQueryStr, hops) {
+    hops = (hops || hops === 0) ? hops : DEFAULT_HOPS_QUERY
+    let request = Request.create('query', aQueryStr, undefined, hops + 1) // +1 for processing by the current node
     this._EE.emit('IncomingRequest', request)
     return request.getDeferred().promise
   }
