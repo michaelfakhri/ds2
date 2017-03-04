@@ -92,9 +92,10 @@ module.exports = class ConnectionHandler {
   }
 
   disconnect (userHash) {
-    var ma = this._signalling + userHash
+    let self = this
+    var ma = self._signalling + userHash
     // TODO: REMOVE THE FOLLOWING LINE WHEN HANGUP BUG IS INVESTIGATED/FIXED
-    this.disconnectConnection(userHash)
+    self.disconnectConnection(userHash)
     return deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)
   }
   initQueryStream (connection) {
@@ -105,7 +106,7 @@ module.exports = class ConnectionHandler {
       connection, // p2p connection
       pullDecode(), // convert uint8 to utf8
       stream.drain(self.queryTransferProtocolHandler.bind(self), // function called when data arrives
-        (err) => {
+        (err, something) => {
           if (err) throw err
           connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.disconnectConnection(addr[addr.length - 1]) })
         }
@@ -137,10 +138,11 @@ module.exports = class ConnectionHandler {
     this.activeQueryConnections[userHash].push(ftpRequest.serialize())
   }
   disconnectConnection (userHash) {
-    if (this.activeQueryConnections[userHash]) this.activeQueryConnections[userHash].end()
-    // TODO: Remove this forceful disconnection code
-    delete this.activeQueryConnections[userHash]
-    delete this._node.swarm.muxedConns[userHash]
+    if (this.activeQueryConnections[userHash] || this.activeFtpConnections[userHash]) {
+      this.activeQueryConnections[userHash].end()
+      delete this.activeQueryConnections[userHash]
+      delete this.activeFtpConnections[userHash]
+    }
   }
 
   getIdentity () {
