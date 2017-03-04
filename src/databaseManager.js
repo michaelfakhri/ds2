@@ -27,7 +27,7 @@ module.exports = class DatabaseManager {
         if (request.isRequestOriginThisNode()) {
           response = {id: 'local', result: queryResult}
         } else {
-          response = {id: self.myId, result: queryResult}
+          response = {id: self.myId, hops:(request.getRoute().length - 1), result: queryResult}
         }
         request.setResult([response])
         self._EE.emit('IncomingResponse', request)
