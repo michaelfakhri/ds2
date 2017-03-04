@@ -25,7 +25,7 @@ module.exports = class DatabaseManager {
       .then((queryResult) => {
         let response
         if (request.isRequestOriginThisNode()) {
-          response = {id: 'local', result: queryResult}
+          response = {id: 'local', hops: (request.getRoute().length - 1), result: queryResult}
         } else {
           response = {id: self.myId, hops: (request.getRoute().length - 1), result: queryResult}
         }
