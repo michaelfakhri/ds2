@@ -32,31 +32,31 @@ Where:
 Where:
 - `user : String` – The identity of the user that the networking layer should disconnect from.
 
-#### `Promise publish(data, metadata)`
-> returns promise that resolves to the hash of the data after the data and metadata are stored in their respective storage units.
+#### `Promise publish(file, metadata)`
+> returns promise that resolves to the hash of the file after the file and metadata are stored in their respective storage units.
 
 Where:
-- `data : Array` - The file contents to store in storage so that other users can request this data / file contents.
+- `file : Array` - The file contents to store in storage so that other users can request this file contents.
 - `metadata : Object` – The metadata of the file contents provided, which will also be stored using metadata storage provided in the constructor.
 
 #### `Promise delete(hash)`
-> returns a promise that resolves when data is deleted from the data storage unit.
+> returns a promise that resolves when the file and its metadata are deleted from the data storage unit.
 
 Where:
-- `hash : String` – The hash of the data / file contents to delete from data storage unit.
+- `hash : String` – The hash of the file contents to delete from data storage unit.
 
 #### `Promise copy(hash, user)`
-> returns a promise that resolves when data is downloaded. A user must be connected using connect(user) before calling this function.
+> returns a promise that resolves when file is downloaded. A user must be connected using connect(user) before calling this function.
 
 Where:
-- `hash : String` – The hash of the data / file contents to download from another peer.
+- `hash : String` – The hash of the file contents to download from another peer.
 - `User : String` - The identity (public key) of the user to download the data from
 
 #### `Promise view(hash)`
-> returns a promise that resolves to the data stored in the data storage unit. The promise is rejected if hash does not exist in the data storage unit.
+> returns a promise that resolves to the file stored in the data storage unit. The promise is rejected if hash does not exist in the data storage unit.
 
 Where:
-- `hash : String` – The hash of the data / file contents to view from the data storage unit.
+- `hash : String` – The hash of the file contents to view from the data storage unit.
 
 #### `Promise query(query, hops)`
 > returns promise that resolves when query responses are received from all connected peers. This query string is sent to all connected peers. Each peer will do three things: 
