@@ -1,5 +1,4 @@
-DS2 API
-=
+# DS2 API
 
 ## Constructor
 ### `DS2(fileMetadataHandler, options)`
@@ -22,13 +21,13 @@ Where:
 > returns a promise that resolves when network layer and storage modules are stopped.
 
 #### `Promise connect(user)`
-> returns a promise that resolves when peer is connected.
+> returns a promise that resolves when the peer is connected.
 
 Where:
 - `user : String` – The identity of the user that the networking layer should connect to.
 
 #### `Promise disconnect(user)`
-> returns a promise that resolves when peer is disconnected.
+> returns a promise that resolves when the peer is disconnected.
 
 Where:
 - `user : String` – The identity of the user that the networking layer should disconnect from.
@@ -37,8 +36,8 @@ Where:
 > returns promise that resolves to the hash of the data after the data and metadata are stored in their respective storage units.
 
 Where:
-- `data : Array` - The data / file contents to store in storage so that other users can request this data / file contents.
-- `metadata : Object` – The metadata of the data / file contents provided, which will also be stored in the metadata storage provided in the constructor.
+- `data : Array` - The file contents to store in storage so that other users can request this data / file contents.
+- `metadata : Object` – The metadata of the file contents provided, which will also be stored using metadata storage provided in the constructor.
 
 #### `Promise delete(hash)`
 > returns a promise that resolves when data is deleted from the data storage unit.
@@ -61,12 +60,13 @@ Where:
 
 #### `Promise query(query, hops)`
 > returns promise that resolves when query responses are received from all connected peers. This query string is sent to all connected peers. Each peer will do three things: 
-1) pass it to the FileMetadataHandler object passed to the constructor when this object was instantiated. 
-2) Forward the query to all connected peers if certain conditions are met. 
-3) collect all responses that come in from the peers that received this query from this node. Send back the responses once the last one is received.
+1) pass it to the FileMetadataHandler object passed to the `constructor` when this class was instantiated. 
+2) Forward the query to all connected peers if the number of hops left is greater than 1. 
+3) collect all responses that come in from the peers that received this query from this node. Send back the responses once the last response is received.
 
 Where:
 - `query : String` – A query of the metadata storage unit.
+- `hops : Integer` – The number of hops this query should make away from this node.
 
 #### `Array getConnectedPeers()`
 > returns a list of the connected peer.
