@@ -107,7 +107,7 @@ module.exports = class ConnectionHandler {
       pullDecode(), // convert uint8 to utf8
       stream.drain(self.queryTransferProtocolHandler.bind(self), // function called when data arrives
         (err, something) => {
-          if (err) throw err
+          if (err && err.message !== 'socket hang up') throw err
           connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.disconnectConnection(addr[addr.length - 1]) })
         }
       ) // function called when stream is done
