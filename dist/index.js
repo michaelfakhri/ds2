@@ -1,4 +1,4 @@
-var UniversalPeerToPeer =
+var Ds2 =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
