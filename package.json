@@ -1,6 +1,6 @@
 {
   "name": "ds2",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "content addressable P2P network",
   "main": "src/index.js",
   "browser": {
