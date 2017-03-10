@@ -1,14 +1,14 @@
 # DS2 API
 
 ## Constructor
-### `DS2(fileMetadataHandler, options)`
+### `DS2(metadataHandler, options)`
 > returns an instance of this module.
 
 Where:
-* `fileMetadataHandler :`[`FileMetadataHandler`](https://github.com/michaelfakhri/metadata-handler-interface) - Any object that implements the File Metadata Handler interface.
+* `metadataHandler :`[`MetadataHandler`](https://github.com/michaelfakhri/metadata-handler-interface) - Any object that implements the Metadata Handler interface.
 * `options : Object` - The available options are listed below:
   * `useEcncryption : Boolean` - true/false default: false 
-  * `signalling : String` - default: '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' The address of the signalling server (libp2p-webrtc-star) in [Multiaddr](https://github.com/multiformats/multiaddr) format.
+  * `signalling : String` - default: '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/' The address of the signalling server (libp2p-webrtc-star) in [Multiaddr](https://github.com/multiformats/multiaddr) format. Another example is ‘/libp2p-webrtc-star/dns/blooming-atoll-60728.herokuapp.com/wss/ipfs/'.
 
 ## Methods
 #### `Promise start([peerId])`
@@ -60,8 +60,8 @@ Where:
 
 #### `Promise query(query, hops)`
 > returns promise that resolves when query responses are received from all connected peers. This query string is sent to all connected peers. Each peer will do three things: 
-1) pass it to the FileMetadataHandler object passed to the `constructor` when this class was instantiated. 
-2) Forward the query to all connected peers if the number of hops left is greater than 1. 
+1) Pass it to the MetadataHandler object passed to the `constructor` when this class was instantiated. 
+2) Decrement hops and forward the query to all connected peers if the number of hops left is greater than 0. 
 3) collect all responses that come in from the peers that received this query from this node. Send back the responses once the last response is received.
 
 Where:
