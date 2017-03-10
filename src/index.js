@@ -16,7 +16,7 @@ const ConnectionHandler = require('./connectionHandler')
 
 const DEFAULT_HOPS_QUERY = 5
 
-module.exports = class UniversalPeerToPeer {
+module.exports = class DS2 {
 
   constructor (aFileMetadataHandler, options) {
     if (!aFileMetadataHandler) {
