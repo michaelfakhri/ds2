@@ -1,6 +1,6 @@
 {
-  "name": "universal-peer-to-peer",
-  "version": "0.0.0",
+  "name": "ds2",
+  "version": "0.0.1",
   "description": "content addressable P2P network",
   "main": "src/index.js",
   "browser": {
@@ -18,15 +18,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/michaelfakhri/universal-peer-to-peer.git"
+    "url": "git+https://github.com/michaelfakhri/ds2.git"
   },
   "keywords": [],
   "author": "Michael Fakhry",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/michaelfakhri/universal-peer-to-peer/issues"
+    "url": "https://github.com/michaelfakhri/ds2issues"
   },
-  "homepage": "https://github.com/michaelfakhri/universal-peer-to-peer#readme",
+  "homepage": "https://github.com/michaelfakhri/ds2#readme",
   "devDependencies": {
     "chai": "3.5.0",
     "gulp": "3.9.1",
@@ -47,5 +47,10 @@
     "pull-pushable": "2.0.1",
     "pull-stream": "3.5.0",
     "pull-utf8-decoder": "1.0.2"
-  }
+  },
+  "contributors": [
+    "Greenkeeper <support@greenkeeper.io>",
+    "Michael Fakhry <fakhrimichael@live.com>",
+    "greenkeeper[bot] <greenkeeper[bot]@users.noreply.github.com>"
+  ]
 }
