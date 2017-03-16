@@ -1,11 +1,11 @@
 'use strict'
-const Request = require('./request')
+const RequestFactory = require('./RequestFactory')
 
 const stream = require('pull-stream')
 const pullPushable = require('pull-pushable')
 const pullDecode = require('pull-utf8-decoder')
 const PeerInfo = require('peer-info')
-const Libp2p = require('./libp2p')
+const Libp2p = require('./Libp2p')
 const Logger = require('logplease')
 const deferred = require('deferred')
 Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
@@ -94,7 +94,6 @@ module.exports = class ConnectionHandler {
   disconnect (userHash) {
     let self = this
     var ma = self._signalling + userHash
-    // TODO: REMOVE THE FOLLOWING LINE WHEN HANGUP BUG IS INVESTIGATED/FIXED
     self.disconnectConnection(userHash)
     return deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)
   }
@@ -120,7 +119,7 @@ module.exports = class ConnectionHandler {
   }
 
   queryTransferProtocolHandler (request) {
-    var parsedRequest = Request.createFromString(request)
+    var parsedRequest = RequestFactory.getRequestFromStringJSON(request)
     if (parsedRequest.isResponse()) this._EE.emit('IncomingResponse', parsedRequest)
     else this._EE.emit('IncomingRequest', parsedRequest)
   }
@@ -128,14 +127,14 @@ module.exports = class ConnectionHandler {
     var count = 0
     for (var userHash in this.activeQueryConnections) {
       if (query.getRoute().indexOf(userHash) < 0) {
-        this.activeQueryConnections[userHash].push(query.serialize())
+        this.activeQueryConnections[userHash].push(JSON.stringify(query.toJSON()))
         count++
       }
     }
     return count
   }
   sendRequestToUser (userHash, ftpRequest) {
-    this.activeQueryConnections[userHash].push(ftpRequest.serialize())
+    this.activeQueryConnections[userHash].push(JSON.stringify(ftpRequest.toJSON()))
   }
   disconnectConnection (userHash) {
     if (this.activeQueryConnections[userHash] || this.activeFtpConnections[userHash]) {
