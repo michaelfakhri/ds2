@@ -1,26 +1,28 @@
 'use strict'
+
+const Deferred = require('deferred')
+const Stream = require('pull-stream')
+const Logger = require('logplease')
+const PeerInfo = require('peer-info')
+const PullDecode = require('pull-utf8-decoder')
+const PullPushable = require('pull-pushable')
+
+const Libp2p = require('./Libp2p')
 const RequestFactory = require('./RequestFactory')
 
-const stream = require('pull-stream')
-const pullPushable = require('pull-pushable')
-const pullDecode = require('pull-utf8-decoder')
-const PeerInfo = require('peer-info')
-const Libp2p = require('./Libp2p')
-const Logger = require('logplease')
-const deferred = require('deferred')
 Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
 
-const logger = Logger.create('ConnectionHandler', { color: Logger.Colors.Blue })
+const LOGGER = Logger.create('ConnectionHandler', { color: Logger.Colors.Blue })
 
 module.exports = class ConnectionHandler {
   constructor (EE, options) {
+    this._activeQueryConnections = {}
+    this._activeFtpConnections = {}
     this._EE = EE
-    this.activeQueryConnections = {}
-    this.activeFtpConnections = {}
+    this._myId
+    this._node
     this._options = options
     this._signalling = options.signalling || '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/'
-    this._node
-    this.myId
 
     this._EE.on('IncomingQueryRequest', this.onIncomingQueryRequest.bind(this))
     this._EE.on('IncomingFileRequest', this.onIncomingFileRequest.bind(this))
@@ -42,29 +44,29 @@ module.exports = class ConnectionHandler {
     if (request.isRequestOriginThisNode()) {
       let userHash = request.getTarget()
       var deferredFile = request.getDeferred()
-      if (!self.activeFtpConnections[userHash] || !self.activeQueryConnections[userHash]) {
+      if (!self._activeFtpConnections[userHash] || !self._activeQueryConnections[userHash]) {
         return deferredFile.reject(new Error('user is not connected'))
       }
-      if (self.activeFtpConnections[userHash].activeIncoming) {
+      if (self._activeFtpConnections[userHash].activeIncoming) {
         return deferredFile.reject(new Error('There is a file currently being transferred'))
       }
-      request.attachConnection(self.activeFtpConnections[userHash].connection)
-      self.activeFtpConnections[userHash].activeIncoming = true
+      request.attachConnection(self._activeFtpConnections[userHash].connection)
+      self._activeFtpConnections[userHash].activeIncoming = true
       self.sendRequestToUser(userHash, request)
     } else {
-      request.attachConnection(self.activeFtpConnections[request.getRoute()[0]].connection)
+      request.attachConnection(self._activeFtpConnections[request.getRoute()[0]].connection)
     }
   }
 
   onReturnToSender (request) {
-    var myIndex = request.getRoute().indexOf(this.myId)
+    var myIndex = request.getRoute().indexOf(this._myId)
     this.sendRequestToUser(request.getRoute()[myIndex - 1], request)
   }
   onReleaseConnection (userHash) {
     let self = this
-    this.activeFtpConnections[userHash].activeIncoming = false
+    this._activeFtpConnections[userHash].activeIncoming = false
     var ma = this._signalling + userHash
-    deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer')
+    Deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer')
       .then((conn) => self.initFtpStream(conn))
   }
 
@@ -76,18 +78,18 @@ module.exports = class ConnectionHandler {
     self._node.handle('/UP2P/fileTransfer', (protocol, conn) => self.initFtpStream(conn))
     let ma = this._signalling + aPeerId.toB58String()
     peerInfo.multiaddr.add(ma)
-    logger.debug('YOU CAN REACH ME AT ID = ' + aPeerId.toB58String())
-    this.myId = aPeerId.toB58String()
+    LOGGER.debug('YOU CAN REACH ME AT ID = ' + aPeerId.toB58String())
+    this._myId = aPeerId.toB58String()
 
     // return peer-id instance after libp2p node is started so other modules can use it
-    return deferred.promisify(self._node.start.bind(self._node))().then(() => aPeerId)
+    return Deferred.promisify(self._node.start.bind(self._node))().then(() => aPeerId)
   }
   connect (userHash) {
     let ma = this._signalling + userHash
     let self = this
-    return deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/queryTransfer')
+    return Deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/queryTransfer')
       .then((conn) => self.initQueryStream(conn))
-      .then(() => deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer'))
+      .then(() => Deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer'))
       .then((conn) => self.initFtpStream(conn))
   }
 
@@ -95,27 +97,27 @@ module.exports = class ConnectionHandler {
     let self = this
     var ma = self._signalling + userHash
     self.disconnectConnection(userHash)
-    return deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)
+    return Deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)
   }
   initQueryStream (connection) {
     var self = this
-    var queryPusher = pullPushable()
-    stream(
+    var queryPusher = PullPushable()
+    Stream(
       queryPusher, // data pusher
       connection, // p2p connection
-      pullDecode(), // convert uint8 to utf8
-      stream.drain(self.queryTransferProtocolHandler.bind(self), // function called when data arrives
+      PullDecode(), // convert uint8 to utf8
+      Stream.drain(self.queryTransferProtocolHandler.bind(self), // function called when data arrives
         (err, something) => {
           if (err && err.message !== 'socket hang up') throw err
           connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.disconnectConnection(addr[addr.length - 1]) })
         }
       ) // function called when stream is done
     )
-    connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.activeQueryConnections[addr[addr.length - 1]] = queryPusher })
+    connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self._activeQueryConnections[addr[addr.length - 1]] = queryPusher })
   }
   initFtpStream (conn) {
     var self = this
-    conn.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.activeFtpConnections[addr[addr.length - 1]] = {connection: conn, activeIncoming: false} })
+    conn.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self._activeFtpConnections[addr[addr.length - 1]] = {connection: conn, activeIncoming: false} })
   }
 
   queryTransferProtocolHandler (request) {
@@ -125,30 +127,30 @@ module.exports = class ConnectionHandler {
   }
   sendRequestToAll (query) {
     var count = 0
-    for (var userHash in this.activeQueryConnections) {
+    for (var userHash in this._activeQueryConnections) {
       if (query.getRoute().indexOf(userHash) < 0) {
-        this.activeQueryConnections[userHash].push(JSON.stringify(query.toJSON()))
+        this._activeQueryConnections[userHash].push(JSON.stringify(query.toJSON()))
         count++
       }
     }
     return count
   }
   sendRequestToUser (userHash, ftpRequest) {
-    this.activeQueryConnections[userHash].push(JSON.stringify(ftpRequest.toJSON()))
+    this._activeQueryConnections[userHash].push(JSON.stringify(ftpRequest.toJSON()))
   }
   disconnectConnection (userHash) {
-    if (this.activeQueryConnections[userHash] || this.activeFtpConnections[userHash]) {
-      this.activeQueryConnections[userHash].end()
-      delete this.activeQueryConnections[userHash]
-      delete this.activeFtpConnections[userHash]
+    if (this._activeQueryConnections[userHash] || this._activeFtpConnections[userHash]) {
+      this._activeQueryConnections[userHash].end()
+      delete this._activeQueryConnections[userHash]
+      delete this._activeFtpConnections[userHash]
     }
   }
 
   getIdentity () {
-    return this.myId
+    return this._myId
   }
 
   getConnectedPeers () {
-    return Object.keys(this.activeQueryConnections)
+    return Object.keys(this._activeQueryConnections)
   }
 }

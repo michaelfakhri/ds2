@@ -1,18 +1,17 @@
 'use strict'
 
-const stream = require('pull-stream')
-const pullDecode = require('pull-utf8-decoder')
-const PullBlobStore = require('idb-pull-blob-store')
+const Deferred = require('deferred')
 const PeerId = require('peer-id')
-
-const deferred = require('deferred')
+const PullBlobStore = require('idb-pull-blob-store')
+const PullDecode = require('pull-utf8-decoder')
+const PullStream = require('pull-stream')
 
 module.exports = class DatabaseManager {
   constructor (fileMetadata, EE) {
-    this.metadata = fileMetadata
-    this.config = new PullBlobStore('config')
+    this._config = new PullBlobStore('config')
     this._EE = EE
-    this.myId
+    this._metadata = fileMetadata
+    this._myId
 
     this._EE.on('IncomingQueryRequest', this.onIncomingQueryRequest.bind(this))
     this._EE.on('IncomingFileRequest', this.onIncomingFileRequest.bind(this))
@@ -26,7 +25,7 @@ module.exports = class DatabaseManager {
         if (request.isRequestOriginThisNode()) {
           request.resolve('local', queryResult)
         } else {
-          request.resolve(self.myId, queryResult)
+          request.resolve(self._myId, queryResult)
         }
         self._EE.emit('IncomingResponse', request)
       })
@@ -36,7 +35,7 @@ module.exports = class DatabaseManager {
     let self = this
     let fileHash = request.getFile()
     if (request.isRequestOriginThisNode()) {
-      stream(
+      PullStream(
         request.getConnection(),
         self.getFileWriter(fileHash, function (err) {
           if (err) throw err
@@ -50,7 +49,7 @@ module.exports = class DatabaseManager {
           self.getMetadata(request.getFile()).then((metadata) => {
             request.accept(metadata)
             self._EE.emit('ReturnToSender', request)
-            stream(
+            PullStream(
               self.getFileReader(request.getFile()),
               request.getConnection()
             )
@@ -77,7 +76,7 @@ module.exports = class DatabaseManager {
     return self.getConfig(aPeerId)
       .then((peerId) => {
         self.files = new PullBlobStore('files-' + peerId.toB58String())
-        self.myId = peerId.toB58String()
+        self._myId = peerId.toB58String()
 
         return peerId
       })
@@ -85,7 +84,7 @@ module.exports = class DatabaseManager {
 
   getConfig (aPeerId) {
     let self = this
-    let def = deferred()
+    let def = Deferred()
 
     if (aPeerId) {
       def.resolve(aPeerId)
@@ -94,10 +93,10 @@ module.exports = class DatabaseManager {
       .then((exists) => {
         if (exists) {
           self.getConfigFromStorage()
-            .then((peerIdJSON) => deferred.promisify(PeerId.createFromJSON)(peerIdJSON))
+            .then((peerIdJSON) => Deferred.promisify(PeerId.createFromJSON)(peerIdJSON))
             .then((peerId) => def.resolve(peerId))
         } else {
-          deferred.promisify(PeerId.create)()
+          Deferred.promisify(PeerId.create)()
           .then((peerId) => {
             self.storeConfig(peerId.toJSON())
               .then(() => def.resolve(peerId))
@@ -111,37 +110,37 @@ module.exports = class DatabaseManager {
   }
 
   configExists () {
-    return deferred.promisify(this.config.exists.bind(this.config))('config')
+    return Deferred.promisify(this._config.exists.bind(this._config))('config')
   }
 
   getConfigFromStorage () {
-    var def = deferred()
-    stream(
-      this.config.read('config'),
-      pullDecode(),
-      stream.drain((data) => def.resolve(JSON.parse(data)), (err) => { if (err) return def.reject(err) })
+    var def = Deferred()
+    PullStream(
+      this._config.read('config'),
+      PullDecode(),
+      PullStream.drain((data) => def.resolve(JSON.parse(data)), (err) => { if (err) return def.reject(err) })
     )
     return def.promise
   }
 
   storeConfig (jsonConfig) {
-    var def = deferred()
-    stream(
-      stream.once(new Buffer(JSON.stringify(jsonConfig))),
-      this.config.write('config', (err) => { if (err) return def.reject(err); def.resolve() })
+    var def = Deferred()
+    PullStream(
+      PullStream.once(new Buffer(JSON.stringify(jsonConfig))),
+      this._config.write('config', (err) => { if (err) return def.reject(err); def.resolve() })
     )
     return def.promise
   }
 
   fileExists (fileHash) {
-    return deferred.promisify(this.files.exists.bind(this.files))(fileHash)
+    return Deferred.promisify(this.files.exists.bind(this.files))(fileHash)
   }
   getFile (fileHash) {
-    var def = deferred()
-    stream(
+    var def = Deferred()
+    PullStream(
         this.getFileReader(fileHash),
-        stream.flatten(),
-        stream.collect((err, arr) => { if (err) return def.reject(err); def.resolve(arr) })
+        PullStream.flatten(),
+        PullStream.collect((err, arr) => { if (err) return def.reject(err); def.resolve(arr) })
       )
     return def.promise
   }
@@ -152,18 +151,18 @@ module.exports = class DatabaseManager {
     return this.files.read(fileHash)
   }
   deleteFile (fileHash) {
-    return deferred.promisify(this.files.remove.bind(this.files))(fileHash)
+    return Deferred.promisify(this.files.remove.bind(this.files))(fileHash)
   }
   storeMetadata (fileHash, metadata) {
-    return this.metadata.store(fileHash, metadata)
+    return this._metadata.store(fileHash, metadata)
   }
   getMetadata (fileHash) {
-    return this.metadata.get(fileHash)
+    return this._metadata.get(fileHash)
   }
   queryMetadata (aQueryStr) {
-    return this.metadata.query(aQueryStr)
+    return this._metadata.query(aQueryStr)
   }
   deleteMetadata (fileHash) {
-    return this.metadata.delete(fileHash)
+    return this._metadata.delete(fileHash)
   }
 }

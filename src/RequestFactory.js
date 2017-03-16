@@ -1,12 +1,8 @@
 'use strict'
 
-const Request = require('./Request')
 const FileRequest = require('./FileRequest')
 const QueryRequest = require('./QueryRequest')
-
-module.exports.getRequest = function () {
-
-}
+const Request = require('./Request')
 
 module.exports.getRequestFromStringJSON = function (requestStr) {
   let requestJSON = JSON.parse(requestStr)

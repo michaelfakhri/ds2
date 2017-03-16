@@ -3,7 +3,6 @@
 const Request = require('./Request')
 
 const NR_OF_HOPS_FILE = 1
-
 const FILE_TYPE = 'file'
 
 class FileRequest extends Request {
@@ -32,7 +31,7 @@ class FileRequest extends Request {
   }
 
   accept (metadata) {
-    super.setResult({ accepted: true, metadata: metadata })
+    super.setResult({ accepted: true, _metadata: metadata })
   }
 
   reject (error) {
@@ -44,7 +43,7 @@ class FileRequest extends Request {
   }
 
   getMetadata () {
-    return super.getResult().metadata
+    return super.getResult()._metadata
   }
 
   getError () {

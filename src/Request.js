@@ -1,6 +1,6 @@
 'use strict'
 
-const defer = require('deferred')
+const Deferred = require('deferred')
 
 class Request {
   constructor (type, hops) {
@@ -10,7 +10,7 @@ class Request {
     this._result = undefined
     this._id = window.crypto.getRandomValues(new Uint32Array(1))[0]
 
-    this._deferred = defer()
+    this._deferred = Deferred()
     this._expectedResponses = 0
     this._receivedResponses = 0
   }

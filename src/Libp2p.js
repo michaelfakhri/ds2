@@ -1,17 +1,17 @@
 'use strict'
 
+const Libp2p = require('libp2p')
+const Secio = require('libp2p-secio')
+const SPDY = require('libp2p-spdy')
 const WebRTCStar = require('libp2p-webrtc-star')
-const spdy = require('libp2p-spdy')
-const secio = require('libp2p-secio')
-const libp2p = require('libp2p')
 
-class Node extends libp2p {
+class Node extends Libp2p {
   constructor (peerInfo, options) {
     let encryption
     const webRTCStar = new WebRTCStar()
 
     if (options.useEncryption) {
-      encryption = [secio]
+      encryption = [Secio]
     } else {
       encryption = []
     }
@@ -22,7 +22,7 @@ class Node extends libp2p {
       ],
       connection: {
         muxer: [
-          spdy
+          SPDY
         ],
         crypto: encryption
       },

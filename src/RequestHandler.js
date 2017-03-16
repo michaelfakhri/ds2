@@ -4,15 +4,16 @@ const RequestFactory = require('./RequestFactory')
 
 module.exports = class RequestHandler {
   constructor (EE) {
-    this.activeRequests = []
-    this.recentRequestIds = []
+    this._activeRequests = []
     this._EE = EE
-    this.myId
+    this._myId
+    this._recentRequestIds = []
+
     this._EE.on('IncomingRequest', this.onIncomingRequest.bind(this))
     this._EE.on('IncomingResponse', this.onIncomingResponse.bind(this))
   }
   start (aPeerId) {
-    this.myId = aPeerId.toB58String()
+    this._myId = aPeerId.toB58String()
 
     // return peer-id instance so other modules can use it
     return aPeerId
@@ -21,15 +22,15 @@ module.exports = class RequestHandler {
   onIncomingRequest (request) {
     let self = this
     let requestId = request.getId()
-    request.addToRoute(this.myId)
+    request.addToRoute(this._myId)
 
-    if (this.recentRequestIds.indexOf(request.getId()) > -1) {
+    if (this._recentRequestIds.indexOf(request.getId()) > -1) {
       request.setResult([])
       return this._EE.emit('IncomingResponse', request)
     }
-    this.activeRequests[requestId] = request
-    this.recentRequestIds.push(requestId)
-    setTimeout(() => self.recentRequestIds.shift(), 5 * 1000)
+    this._activeRequests[requestId] = request
+    this._recentRequestIds.push(requestId)
+    setTimeout(() => self._recentRequestIds.shift(), 5 * 1000)
 
     if (RequestFactory.isQuery(request)) {
       this._EE.emit('IncomingQueryRequest', request)
@@ -41,11 +42,11 @@ module.exports = class RequestHandler {
   onIncomingResponse (response) {
     let requestId = response.getId()
     if (RequestFactory.isFile(response)) {
-      this.activeRequests.splice(requestId, 1)
+      this._activeRequests.splice(requestId, 1)
       return this._EE.emit('IncomingFileResponse', response)
     }
 
-    let activeRequest = this.activeRequests[requestId]
+    let activeRequest = this._activeRequests[requestId]
     activeRequest.incrementReceivedResponses()
     response.getResult().forEach((elementInArray) => activeRequest.addResponse(elementInArray))
 

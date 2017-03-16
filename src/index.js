@@ -1,20 +1,21 @@
 'use strict'
 
-const MultihashingAsync = require('multihashing-async')
-const stream = require('pull-stream')
-const Logger = require('logplease')
-const deferred = require('deferred')
+const Deferred = require('deferred')
 const EE = require('events').EventEmitter
-const FileRequest = require('./FileRequest')
-const QueryRequest = require('./QueryRequest')
-const DatabaseManager = require('./DatabaseManager')
-const RequestHandler = require('./RequestHandler')
-Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
-
-const logger = Logger.create('UP2P', { color: Logger.Colors.Blue })
+const Logger = require('logplease')
+const MultihashingAsync = require('multihashing-async')
+const PullStream = require('pull-stream')
 
 const ConnectionHandler = require('./ConnectionHandler')
+const DatabaseManager = require('./DatabaseManager')
+const RequestHandler = require('./RequestHandler')
 
+const FileRequest = require('./FileRequest')
+const QueryRequest = require('./QueryRequest')
+
+Logger.setLogLevel(Logger.LogLevels.ERROR)
+
+const LOGGER = Logger.create('DS2', { color: Logger.Colors.Blue })
 const DEFAULT_HOPS_QUERY = 5
 
 module.exports = class DS2 {
@@ -40,11 +41,11 @@ module.exports = class DS2 {
   }
 
   stop () {
-    return deferred.promisify(this._connectionHandler._node.stop.bind(this._connectionHandler._node))()
+    return Deferred.promisify(this._connectionHandler._node.stop.bind(this._connectionHandler._node))()
   }
 
   connect (aUserHashStr) {
-    logger.debug('Attempting to connect to ' + aUserHashStr)
+    LOGGER.debug('Attempting to connect to ' + aUserHashStr)
     return this._connectionHandler.connect(aUserHashStr)
   }
   disconnect (aUserHashStr) {
@@ -52,12 +53,12 @@ module.exports = class DS2 {
   }
   publish (aData, aMetadata) {
     var self = this
-    return deferred.promisify(MultihashingAsync)(Buffer(aData), 'sha2-256')
+    return Deferred.promisify(MultihashingAsync)(Buffer(aData), 'sha2-256')
       .then((mh) => {
         var hash = MultihashingAsync.multihash.toB58String(mh)
-        var def = deferred()
-        stream(
-          stream.once(aData),
+        var def = Deferred()
+        PullStream(
+          PullStream.once(aData),
           self._db.getFileWriter(hash, function () {
             def.resolve(hash)
           })
