@@ -18767,7 +18767,7 @@ WBuf.prototype.writeComb = function writeComb(size, endian, value) {
 "use strict";
 
 
-const defer = __webpack_require__(57)
+const Deferred = __webpack_require__(57)
 
 class Request {
   constructor (type, hops) {
@@ -18777,7 +18777,7 @@ class Request {
     this._result = undefined
     this._id = window.crypto.getRandomValues(new Uint32Array(1))[0]
 
-    this._deferred = defer()
+    this._deferred = Deferred()
     this._expectedResponses = 0
     this._receivedResponses = 0
   }
@@ -27202,7 +27202,6 @@ module.exports = yeast;
 const Request = __webpack_require__(118)
 
 const NR_OF_HOPS_FILE = 1
-
 const FILE_TYPE = 'file'
 
 class FileRequest extends Request {
@@ -27231,7 +27230,7 @@ class FileRequest extends Request {
   }
 
   accept (metadata) {
-    super.setResult({ accepted: true, metadata: metadata })
+    super.setResult({ accepted: true, _metadata: metadata })
   }
 
   reject (error) {
@@ -27243,7 +27242,7 @@ class FileRequest extends Request {
   }
 
   getMetadata () {
-    return super.getResult().metadata
+    return super.getResult()._metadata
   }
 
   getError () {
@@ -27325,13 +27324,9 @@ module.exports.QUERY_TYPE = QUERY_TYPE
 "use strict";
 
 
-const Request = __webpack_require__(118)
 const FileRequest = __webpack_require__(205)
 const QueryRequest = __webpack_require__(206)
-
-module.exports.getRequest = function () {
-
-}
+const Request = __webpack_require__(118)
 
 module.exports.getRequestFromStringJSON = function (requestStr) {
   let requestJSON = JSON.parse(requestStr)
@@ -27367,21 +27362,22 @@ module.exports.isQuery = function (request) {
 "use strict";
 /* WEBPACK VAR INJECTION */(function(Buffer) {
 
-const MultihashingAsync = __webpack_require__(432)
-const stream = __webpack_require__(10)
-const Logger = __webpack_require__(170)
-const deferred = __webpack_require__(57)
+const Deferred = __webpack_require__(57)
 const EE = __webpack_require__(14).EventEmitter
-const FileRequest = __webpack_require__(205)
-const QueryRequest = __webpack_require__(206)
-const DatabaseManager = __webpack_require__(564)
-const RequestHandler = __webpack_require__(566)
-Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
-
-const logger = Logger.create('UP2P', { color: Logger.Colors.Blue })
+const Logger = __webpack_require__(170)
+const MultihashingAsync = __webpack_require__(432)
+const PullStream = __webpack_require__(10)
 
 const ConnectionHandler = __webpack_require__(563)
+const DatabaseManager = __webpack_require__(564)
+const RequestHandler = __webpack_require__(566)
 
+const FileRequest = __webpack_require__(205)
+const QueryRequest = __webpack_require__(206)
+
+Logger.setLogLevel(Logger.LogLevels.ERROR)
+
+const LOGGER = Logger.create('DS2', { color: Logger.Colors.Blue })
 const DEFAULT_HOPS_QUERY = 5
 
 module.exports = class DS2 {
@@ -27407,11 +27403,11 @@ module.exports = class DS2 {
   }
 
   stop () {
-    return deferred.promisify(this._connectionHandler._node.stop.bind(this._connectionHandler._node))()
+    return Deferred.promisify(this._connectionHandler._node.stop.bind(this._connectionHandler._node))()
   }
 
   connect (aUserHashStr) {
-    logger.debug('Attempting to connect to ' + aUserHashStr)
+    LOGGER.debug('Attempting to connect to ' + aUserHashStr)
     return this._connectionHandler.connect(aUserHashStr)
   }
   disconnect (aUserHashStr) {
@@ -27419,12 +27415,12 @@ module.exports = class DS2 {
   }
   publish (aData, aMetadata) {
     var self = this
-    return deferred.promisify(MultihashingAsync)(Buffer(aData), 'sha2-256')
+    return Deferred.promisify(MultihashingAsync)(Buffer(aData), 'sha2-256')
       .then((mh) => {
         var hash = MultihashingAsync.multihash.toB58String(mh)
-        var def = deferred()
-        stream(
-          stream.once(aData),
+        var def = Deferred()
+        PullStream(
+          PullStream.once(aData),
           self._db.getFileWriter(hash, function () {
             def.resolve(hash)
           })
@@ -83964,28 +83960,30 @@ function wrappy (fn, cb) {
 
 "use strict";
 
+
+const Deferred = __webpack_require__(57)
+const Stream = __webpack_require__(10)
+const Logger = __webpack_require__(170)
+const PeerInfo = __webpack_require__(68)
+const PullDecode = __webpack_require__(188)
+const PullPushable = __webpack_require__(69)
+
+const Libp2p = __webpack_require__(565)
 const RequestFactory = __webpack_require__(207)
 
-const stream = __webpack_require__(10)
-const pullPushable = __webpack_require__(69)
-const pullDecode = __webpack_require__(188)
-const PeerInfo = __webpack_require__(68)
-const Libp2p = __webpack_require__(565)
-const Logger = __webpack_require__(170)
-const deferred = __webpack_require__(57)
 Logger.setLogLevel(Logger.LogLevels.DEBUG) // change to ERROR
 
-const logger = Logger.create('ConnectionHandler', { color: Logger.Colors.Blue })
+const LOGGER = Logger.create('ConnectionHandler', { color: Logger.Colors.Blue })
 
 module.exports = class ConnectionHandler {
   constructor (EE, options) {
+    this._activeQueryConnections = {}
+    this._activeFtpConnections = {}
     this._EE = EE
-    this.activeQueryConnections = {}
-    this.activeFtpConnections = {}
+    this._myId
+    this._node
     this._options = options
     this._signalling = options.signalling || '/libp2p-webrtc-star/ip4/127.0.0.1/tcp/15555/ws/ipfs/'
-    this._node
-    this.myId
 
     this._EE.on('IncomingQueryRequest', this.onIncomingQueryRequest.bind(this))
     this._EE.on('IncomingFileRequest', this.onIncomingFileRequest.bind(this))
@@ -84007,29 +84005,29 @@ module.exports = class ConnectionHandler {
     if (request.isRequestOriginThisNode()) {
       let userHash = request.getTarget()
       var deferredFile = request.getDeferred()
-      if (!self.activeFtpConnections[userHash] || !self.activeQueryConnections[userHash]) {
+      if (!self._activeFtpConnections[userHash] || !self._activeQueryConnections[userHash]) {
         return deferredFile.reject(new Error('user is not connected'))
       }
-      if (self.activeFtpConnections[userHash].activeIncoming) {
+      if (self._activeFtpConnections[userHash].activeIncoming) {
         return deferredFile.reject(new Error('There is a file currently being transferred'))
       }
-      request.attachConnection(self.activeFtpConnections[userHash].connection)
-      self.activeFtpConnections[userHash].activeIncoming = true
+      request.attachConnection(self._activeFtpConnections[userHash].connection)
+      self._activeFtpConnections[userHash].activeIncoming = true
       self.sendRequestToUser(userHash, request)
     } else {
-      request.attachConnection(self.activeFtpConnections[request.getRoute()[0]].connection)
+      request.attachConnection(self._activeFtpConnections[request.getRoute()[0]].connection)
     }
   }
 
   onReturnToSender (request) {
-    var myIndex = request.getRoute().indexOf(this.myId)
+    var myIndex = request.getRoute().indexOf(this._myId)
     this.sendRequestToUser(request.getRoute()[myIndex - 1], request)
   }
   onReleaseConnection (userHash) {
     let self = this
-    this.activeFtpConnections[userHash].activeIncoming = false
+    this._activeFtpConnections[userHash].activeIncoming = false
     var ma = this._signalling + userHash
-    deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer')
+    Deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer')
       .then((conn) => self.initFtpStream(conn))
   }
 
@@ -84041,18 +84039,18 @@ module.exports = class ConnectionHandler {
     self._node.handle('/UP2P/fileTransfer', (protocol, conn) => self.initFtpStream(conn))
     let ma = this._signalling + aPeerId.toB58String()
     peerInfo.multiaddr.add(ma)
-    logger.debug('YOU CAN REACH ME AT ID = ' + aPeerId.toB58String())
-    this.myId = aPeerId.toB58String()
+    LOGGER.debug('YOU CAN REACH ME AT ID = ' + aPeerId.toB58String())
+    this._myId = aPeerId.toB58String()
 
     // return peer-id instance after libp2p node is started so other modules can use it
-    return deferred.promisify(self._node.start.bind(self._node))().then(() => aPeerId)
+    return Deferred.promisify(self._node.start.bind(self._node))().then(() => aPeerId)
   }
   connect (userHash) {
     let ma = this._signalling + userHash
     let self = this
-    return deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/queryTransfer')
+    return Deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/queryTransfer')
       .then((conn) => self.initQueryStream(conn))
-      .then(() => deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer'))
+      .then(() => Deferred.promisify(self._node.dialByMultiaddr.bind(self._node))(ma, '/UP2P/fileTransfer'))
       .then((conn) => self.initFtpStream(conn))
   }
 
@@ -84060,27 +84058,27 @@ module.exports = class ConnectionHandler {
     let self = this
     var ma = self._signalling + userHash
     self.disconnectConnection(userHash)
-    return deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)
+    return Deferred.promisify(this._node.hangUpByMultiaddr.bind(this._node))(ma)
   }
   initQueryStream (connection) {
     var self = this
-    var queryPusher = pullPushable()
-    stream(
+    var queryPusher = PullPushable()
+    Stream(
       queryPusher, // data pusher
       connection, // p2p connection
-      pullDecode(), // convert uint8 to utf8
-      stream.drain(self.queryTransferProtocolHandler.bind(self), // function called when data arrives
+      PullDecode(), // convert uint8 to utf8
+      Stream.drain(self.queryTransferProtocolHandler.bind(self), // function called when data arrives
         (err, something) => {
           if (err && err.message !== 'socket hang up') throw err
           connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.disconnectConnection(addr[addr.length - 1]) })
         }
       ) // function called when stream is done
     )
-    connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.activeQueryConnections[addr[addr.length - 1]] = queryPusher })
+    connection.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self._activeQueryConnections[addr[addr.length - 1]] = queryPusher })
   }
   initFtpStream (conn) {
     var self = this
-    conn.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self.activeFtpConnections[addr[addr.length - 1]] = {connection: conn, activeIncoming: false} })
+    conn.getObservedAddrs(function (err, data) { if (err) throw err; var addr = data[0].toString().split('/'); self._activeFtpConnections[addr[addr.length - 1]] = {connection: conn, activeIncoming: false} })
   }
 
   queryTransferProtocolHandler (request) {
@@ -84090,31 +84088,31 @@ module.exports = class ConnectionHandler {
   }
   sendRequestToAll (query) {
     var count = 0
-    for (var userHash in this.activeQueryConnections) {
+    for (var userHash in this._activeQueryConnections) {
       if (query.getRoute().indexOf(userHash) < 0) {
-        this.activeQueryConnections[userHash].push(JSON.stringify(query.toJSON()))
+        this._activeQueryConnections[userHash].push(JSON.stringify(query.toJSON()))
         count++
       }
     }
     return count
   }
   sendRequestToUser (userHash, ftpRequest) {
-    this.activeQueryConnections[userHash].push(JSON.stringify(ftpRequest.toJSON()))
+    this._activeQueryConnections[userHash].push(JSON.stringify(ftpRequest.toJSON()))
   }
   disconnectConnection (userHash) {
-    if (this.activeQueryConnections[userHash] || this.activeFtpConnections[userHash]) {
-      this.activeQueryConnections[userHash].end()
-      delete this.activeQueryConnections[userHash]
-      delete this.activeFtpConnections[userHash]
+    if (this._activeQueryConnections[userHash] || this._activeFtpConnections[userHash]) {
+      this._activeQueryConnections[userHash].end()
+      delete this._activeQueryConnections[userHash]
+      delete this._activeFtpConnections[userHash]
     }
   }
 
   getIdentity () {
-    return this.myId
+    return this._myId
   }
 
   getConnectedPeers () {
-    return Object.keys(this.activeQueryConnections)
+    return Object.keys(this._activeQueryConnections)
   }
 }
 
@@ -84126,19 +84124,18 @@ module.exports = class ConnectionHandler {
 "use strict";
 /* WEBPACK VAR INJECTION */(function(Buffer) {
 
-const stream = __webpack_require__(10)
-const pullDecode = __webpack_require__(188)
-const PullBlobStore = __webpack_require__(333)
+const Deferred = __webpack_require__(57)
 const PeerId = __webpack_require__(34)
-
-const deferred = __webpack_require__(57)
+const PullBlobStore = __webpack_require__(333)
+const PullDecode = __webpack_require__(188)
+const PullStream = __webpack_require__(10)
 
 module.exports = class DatabaseManager {
   constructor (fileMetadata, EE) {
-    this.metadata = fileMetadata
-    this.config = new PullBlobStore('config')
+    this._config = new PullBlobStore('config')
     this._EE = EE
-    this.myId
+    this._metadata = fileMetadata
+    this._myId
 
     this._EE.on('IncomingQueryRequest', this.onIncomingQueryRequest.bind(this))
     this._EE.on('IncomingFileRequest', this.onIncomingFileRequest.bind(this))
@@ -84152,7 +84149,7 @@ module.exports = class DatabaseManager {
         if (request.isRequestOriginThisNode()) {
           request.resolve('local', queryResult)
         } else {
-          request.resolve(self.myId, queryResult)
+          request.resolve(self._myId, queryResult)
         }
         self._EE.emit('IncomingResponse', request)
       })
@@ -84162,7 +84159,7 @@ module.exports = class DatabaseManager {
     let self = this
     let fileHash = request.getFile()
     if (request.isRequestOriginThisNode()) {
-      stream(
+      PullStream(
         request.getConnection(),
         self.getFileWriter(fileHash, function (err) {
           if (err) throw err
@@ -84176,7 +84173,7 @@ module.exports = class DatabaseManager {
           self.getMetadata(request.getFile()).then((metadata) => {
             request.accept(metadata)
             self._EE.emit('ReturnToSender', request)
-            stream(
+            PullStream(
               self.getFileReader(request.getFile()),
               request.getConnection()
             )
@@ -84203,7 +84200,7 @@ module.exports = class DatabaseManager {
     return self.getConfig(aPeerId)
       .then((peerId) => {
         self.files = new PullBlobStore('files-' + peerId.toB58String())
-        self.myId = peerId.toB58String()
+        self._myId = peerId.toB58String()
 
         return peerId
       })
@@ -84211,7 +84208,7 @@ module.exports = class DatabaseManager {
 
   getConfig (aPeerId) {
     let self = this
-    let def = deferred()
+    let def = Deferred()
 
     if (aPeerId) {
       def.resolve(aPeerId)
@@ -84220,10 +84217,10 @@ module.exports = class DatabaseManager {
       .then((exists) => {
         if (exists) {
           self.getConfigFromStorage()
-            .then((peerIdJSON) => deferred.promisify(PeerId.createFromJSON)(peerIdJSON))
+            .then((peerIdJSON) => Deferred.promisify(PeerId.createFromJSON)(peerIdJSON))
             .then((peerId) => def.resolve(peerId))
         } else {
-          deferred.promisify(PeerId.create)()
+          Deferred.promisify(PeerId.create)()
           .then((peerId) => {
             self.storeConfig(peerId.toJSON())
               .then(() => def.resolve(peerId))
@@ -84237,37 +84234,37 @@ module.exports = class DatabaseManager {
   }
 
   configExists () {
-    return deferred.promisify(this.config.exists.bind(this.config))('config')
+    return Deferred.promisify(this._config.exists.bind(this._config))('config')
   }
 
   getConfigFromStorage () {
-    var def = deferred()
-    stream(
-      this.config.read('config'),
-      pullDecode(),
-      stream.drain((data) => def.resolve(JSON.parse(data)), (err) => { if (err) return def.reject(err) })
+    var def = Deferred()
+    PullStream(
+      this._config.read('config'),
+      PullDecode(),
+      PullStream.drain((data) => def.resolve(JSON.parse(data)), (err) => { if (err) return def.reject(err) })
     )
     return def.promise
   }
 
   storeConfig (jsonConfig) {
-    var def = deferred()
-    stream(
-      stream.once(new Buffer(JSON.stringify(jsonConfig))),
-      this.config.write('config', (err) => { if (err) return def.reject(err); def.resolve() })
+    var def = Deferred()
+    PullStream(
+      PullStream.once(new Buffer(JSON.stringify(jsonConfig))),
+      this._config.write('config', (err) => { if (err) return def.reject(err); def.resolve() })
     )
     return def.promise
   }
 
   fileExists (fileHash) {
-    return deferred.promisify(this.files.exists.bind(this.files))(fileHash)
+    return Deferred.promisify(this.files.exists.bind(this.files))(fileHash)
   }
   getFile (fileHash) {
-    var def = deferred()
-    stream(
+    var def = Deferred()
+    PullStream(
         this.getFileReader(fileHash),
-        stream.flatten(),
-        stream.collect((err, arr) => { if (err) return def.reject(err); def.resolve(arr) })
+        PullStream.flatten(),
+        PullStream.collect((err, arr) => { if (err) return def.reject(err); def.resolve(arr) })
       )
     return def.promise
   }
@@ -84278,19 +84275,19 @@ module.exports = class DatabaseManager {
     return this.files.read(fileHash)
   }
   deleteFile (fileHash) {
-    return deferred.promisify(this.files.remove.bind(this.files))(fileHash)
+    return Deferred.promisify(this.files.remove.bind(this.files))(fileHash)
   }
   storeMetadata (fileHash, metadata) {
-    return this.metadata.store(fileHash, metadata)
+    return this._metadata.store(fileHash, metadata)
   }
   getMetadata (fileHash) {
-    return this.metadata.get(fileHash)
+    return this._metadata.get(fileHash)
   }
   queryMetadata (aQueryStr) {
-    return this.metadata.query(aQueryStr)
+    return this._metadata.query(aQueryStr)
   }
   deleteMetadata (fileHash) {
-    return this.metadata.delete(fileHash)
+    return this._metadata.delete(fileHash)
   }
 }
 
@@ -84303,18 +84300,18 @@ module.exports = class DatabaseManager {
 "use strict";
 
 
+const Libp2p = __webpack_require__(396)
+const Secio = __webpack_require__(381)
+const SPDY = __webpack_require__(383)
 const WebRTCStar = __webpack_require__(392)
-const spdy = __webpack_require__(383)
-const secio = __webpack_require__(381)
-const libp2p = __webpack_require__(396)
 
-class Node extends libp2p {
+class Node extends Libp2p {
   constructor (peerInfo, options) {
     let encryption
     const webRTCStar = new WebRTCStar()
 
     if (options.useEncryption) {
-      encryption = [secio]
+      encryption = [Secio]
     } else {
       encryption = []
     }
@@ -84325,7 +84322,7 @@ class Node extends libp2p {
       ],
       connection: {
         muxer: [
-          spdy
+          SPDY
         ],
         crypto: encryption
       },
@@ -84350,15 +84347,16 @@ const RequestFactory = __webpack_require__(207)
 
 module.exports = class RequestHandler {
   constructor (EE) {
-    this.activeRequests = []
-    this.recentRequestIds = []
+    this._activeRequests = []
     this._EE = EE
-    this.myId
+    this._myId
+    this._recentRequestIds = []
+
     this._EE.on('IncomingRequest', this.onIncomingRequest.bind(this))
     this._EE.on('IncomingResponse', this.onIncomingResponse.bind(this))
   }
   start (aPeerId) {
-    this.myId = aPeerId.toB58String()
+    this._myId = aPeerId.toB58String()
 
     // return peer-id instance so other modules can use it
     return aPeerId
@@ -84367,15 +84365,15 @@ module.exports = class RequestHandler {
   onIncomingRequest (request) {
     let self = this
     let requestId = request.getId()
-    request.addToRoute(this.myId)
+    request.addToRoute(this._myId)
 
-    if (this.recentRequestIds.indexOf(request.getId()) > -1) {
+    if (this._recentRequestIds.indexOf(request.getId()) > -1) {
       request.setResult([])
       return this._EE.emit('IncomingResponse', request)
     }
-    this.activeRequests[requestId] = request
-    this.recentRequestIds.push(requestId)
-    setTimeout(() => self.recentRequestIds.shift(), 5 * 1000)
+    this._activeRequests[requestId] = request
+    this._recentRequestIds.push(requestId)
+    setTimeout(() => self._recentRequestIds.shift(), 5 * 1000)
 
     if (RequestFactory.isQuery(request)) {
       this._EE.emit('IncomingQueryRequest', request)
@@ -84387,11 +84385,11 @@ module.exports = class RequestHandler {
   onIncomingResponse (response) {
     let requestId = response.getId()
     if (RequestFactory.isFile(response)) {
-      this.activeRequests.splice(requestId, 1)
+      this._activeRequests.splice(requestId, 1)
       return this._EE.emit('IncomingFileResponse', response)
     }
 
-    let activeRequest = this.activeRequests[requestId]
+    let activeRequest = this._activeRequests[requestId]
     activeRequest.incrementReceivedResponses()
     response.getResult().forEach((elementInArray) => activeRequest.addResponse(elementInArray))
 
