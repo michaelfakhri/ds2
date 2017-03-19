@@ -12,6 +12,7 @@ module.exports = class DatabaseManager {
     this._EE = EE
     this._metadata = fileMetadata
     this._myId
+    this.files
 
     this._EE.on('IncomingQueryRequest', this.onIncomingQueryRequest.bind(this))
     this._EE.on('IncomingFileRequest', this.onIncomingFileRequest.bind(this))
