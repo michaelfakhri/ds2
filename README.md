@@ -6,14 +6,15 @@
 ![](https://img.shields.io/badge/Node.js-%3E%3D4.0.0-orange.svg?style=flat-square)
 # Description
 This module represents a node in a peer-to-peer network
-# Network model
+## Network model
 This 
-# API
+### API
 The API is documented [here](API.md)
-# Prerequisites
-# Install
+### Examples
+### Prerequisites
+### Install
 `npm install`
-# Test
+### Test
 `npm test`
-# Lint
+### Lint
 `npm run lint`
