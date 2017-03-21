@@ -14,7 +14,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "gulp test:browser --dom"
+    "test": "gulp test:browser --dom",
+    "lint": "gulp lint"
   },
   "repository": {
     "type": "git",
@@ -22,7 +23,7 @@
   },
   "keywords": [],
   "author": "Michael Fakhry",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/michaelfakhri/ds2issues"
   },
