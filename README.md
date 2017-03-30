@@ -1,9 +1,7 @@
 <h1 align="center">DS2</h1>
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/michaelfakhri/ds2.svg)](https://greenkeeper.io/)
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)
-![](https://img.shields.io/badge/npm-%3E%3D%203.0.0-orange.svg?style=flat-square)
-![](https://img.shields.io/badge/Node.js-%3E%3D%204.0.0-orange.svg?style=flat-square)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-yellow.svg?style=flat-square)](https://github.com/feross/standard)
 # Description
 This module represents a node in a peer-to-peer network. It is capable of establishing connections to other peers, storing files and their metadata (information about the file), copying files from connected peers and querying the files in the connected network that are at a distance of n hops away.
 Connections to peers are established using  WebRTC using the libp2p networking stack.
@@ -49,7 +47,9 @@ node.publish(fileContents : ArrayBuffer, {fileMetadata: ‘this is some metadata
 
 ```
 ### Development prerequisites
-Have Node.js >= 4.00 and npm >= 3.0.0 installed on your machine.
+![](https://img.shields.io/badge/npm-%3E%3D%203.0.0-red.svg?style=flat-square)
+<br>
+![](https://img.shields.io/badge/Node.js-%3E%3D%204.0.0-green.svg?style=flat-square)
 ### Install
 `npm install`
 ### Test
