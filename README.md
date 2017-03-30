@@ -5,7 +5,7 @@
 # Description
 This module represents a node in a peer-to-peer network. It is capable of establishing connections to other peers, storing files and their metadata (information about the file), copying files from connected peers and querying the files in the connected network that are at a distance of n hops away.
 Connections to peers are established using  WebRTC using the libp2p networking stack.
-This module was designed mainly for browser operation but could be extended for Node.js operation in the future.
+The module offers complete control over established connections and allows users to control the data they store on their local node. This module was designed mainly for browser operation but could be extended for Node.js operation in the future.
 ## Network model
 There is no peer-discovery mechanism. Peers are expected to exchange identities in any suitable communication medium. This offers maximum control over who you connect to and who is connected to you.
 Querying is done through flooding of the network through your connected peers in a similar fashion to early Gnutella protocol versions.
